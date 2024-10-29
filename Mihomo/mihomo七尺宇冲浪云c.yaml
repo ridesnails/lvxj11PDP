@@ -66,9 +66,11 @@ proxy-groups:
   - {name: 🌐 全部节点, type: select, include-all: true, filter: "^((?!(官网|到期|剩余)).)*$"}
 rules:
   - RULE-SET,private_domain,🟢 直连
-  - RULE-SET,direct1,🟢 直连
+  - RULE-SET,lvxj11_direct,🎯 全球直连
+  - RULE-SET,lvxj11_proxy,🚀 默认节点
+  - RULE-SET,direct1,🎯 全球直连
   - RULE-SET,apple_domain,🍎 Apple
-  - RULE-SET,steam_cn,🎯 全球直连
+  - RULE-SET,steam_cn,🟢 直连
   - RULE-SET,proxylite,🚀 默认节点
   - RULE-SET,ai,🤖 ChatGPT
   - RULE-SET,github_domain,👨🏿‍💻 GitHub
@@ -95,6 +97,8 @@ rule-anchor:
   class: &class {type: http, interval: 86400, behavior: classical, format: text}
 rule-providers: 
   private_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.mrs" }
+  lvxj11_direct: { <<: *class, url: "https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/Mihomo/lvxj11_direct.list" }
+  lvxj11_proxy: { <<: *class, url: "https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/Mihomo/lvxj11_proxy.list" }
   direct1: { <<: *class, url: "https://raw.githubusercontent.com/qichiyuhub/rule/refs/heads/master/Direct.list" }
   proxylite: { <<: *class, url: "https://raw.githubusercontent.com/qichiyuhub/rule/refs/heads/master/ProxyLite.list" }
   ai: { <<: *class, url: "https://raw.githubusercontent.com/qichiyuhub/rule/refs/heads/master/AI.list" }
