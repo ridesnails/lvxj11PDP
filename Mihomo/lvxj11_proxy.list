@@ -4,9 +4,12 @@
 # DOMAIN-SUFFIX,qichiyu.com
 DOMAIN-SUFFIX,ipfri.com
 DOMAIN-SUFFIX,serverapi.org
+DOMAIN-SUFFIX,chtsite.com
+DOMAIN-SUFFIX,azurefd.us
 
 # 域名关键字匹配
 # DOMAIN-KEYWORD,1e100
+DOMAIN-KEYWORD,surfcloud
 
 # IP匹配
 # IP-CIDR,8.8.8.8/32,no-resolve
