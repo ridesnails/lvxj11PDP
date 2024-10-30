@@ -7,6 +7,7 @@ DOMAIN-SUFFIX,serverapi.org
 DOMAIN-SUFFIX,chtsite.com
 DOMAIN-SUFFIX,azurefd.us
 DOMAIN-SUFFIX,applovin.com
+DOMAIN-SUFFIX,googleapis.cn
 
 # 域名关键字匹配
 # DOMAIN-KEYWORD,1e100
