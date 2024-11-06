@@ -7,6 +7,8 @@ DOMAIN-SUFFIX,ggkuai.com
 
 # 域名关键字匹配
 # DOMAIN-KEYWORD,mirror
+# 排除bt下载种子服务器
+DOMAIN-KEYWORD,tracker
 
 # IP匹配
 # IP-CIDR,8.8.8.8/32,no-resolve
