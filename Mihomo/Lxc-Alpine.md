@@ -33,3 +33,7 @@ nft list ruleset
 注意默认规则入站出站转发的接受或拒绝
 
 #### 安装应用，如shellcrash
+#### 安装测试版软件，如sing-box
+```
+apk add sing-box --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
+```
