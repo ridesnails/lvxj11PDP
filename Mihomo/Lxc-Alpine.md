@@ -2,7 +2,7 @@
 
 #### 安装必要软件
 
-···sh
+··· sh
 apk update
 apk upgrade
 apk add curl nftables openssh net-tools
@@ -10,7 +10,7 @@ apk add curl nftables openssh net-tools
 
 #### 配置服务开机启动
 
-···sh
+··· sh
 rc-service nftables start
 rc-update add nftables default
 rc-service sshd start
