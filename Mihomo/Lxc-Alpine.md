@@ -18,7 +18,10 @@ rc-update add sshd default
 nftables配置文件：
 `/etc/nftables.nft`
 
-查看路由规则：
+修改配置文件后应用修改：
+`rc-service nftables restart`
+
+查看确认路由规则：
 `nft list ruleset`
 
 注意默认规则入站出站转发的接受或拒绝
