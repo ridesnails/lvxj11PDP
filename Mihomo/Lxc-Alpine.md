@@ -21,6 +21,14 @@ rc-update add sshd default
 net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
 ```
+```
+# 启用转发
+sysctl -p
+# 确认转发启用
+cat /proc/sys/net/ipv4/ip_forward
+# 或
+sysctl net.ipv4.ip_forward
+```
 #### 路由表设置
 ```
 ip route add local default dev lo table 100
