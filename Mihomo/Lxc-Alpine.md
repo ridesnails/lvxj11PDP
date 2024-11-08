@@ -15,6 +15,13 @@ rc-service sshd start
 rc-update add sshd default
 ```
 
+#### 配置系统内核允许转发
+```
+# 添加到/etc/sysctl.conf
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+```
+
 nftables配置文件：
 ```
 /etc/nftables.nft
