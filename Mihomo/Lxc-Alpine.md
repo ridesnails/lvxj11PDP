@@ -21,6 +21,11 @@ rc-update add sshd default
 net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
 ```
+#### 路由表设置
+```
+ip route add local default dev lo table 100
+ip rule add fwmark 1 table 100
+```
 
 nftables配置文件：
 ```
