@@ -36,6 +36,7 @@ cat /proc/sys/net/ipv4/ip_forward
 # 或
 sysctl net.ipv4.ip_forward
 ```
+#### 允许转发重启后会失效
 #### 添加转发开启脚本到开机启动
 ```
 # 脚本存放目录/etc/local.d/
