@@ -1,4 +1,19 @@
 {
+  {
   "version": 2,
-  "rules": []
+  "rules": [
+    {
+      "domain_suffix": [
+        "ipfri.com",
+        "serverapi.org",
+        "chtsite.com",
+        "azurefd.us",
+        "applovin.com",
+        "googleapis.cn"
+      ],
+      "domain_keyword": [
+        "surfcloud"
+      ]
+    }
+  ]
 }
