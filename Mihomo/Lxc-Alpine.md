@@ -41,7 +41,7 @@ sysctl net.ipv4.ip_forward
 > 允许转发重启后会失效
 ```
 # 脚本存放目录/etc/local.d/
-echo -e "#!/bin/sh\nsysctl -w net.ipv4.ip_forward=1\nsysctl -w net.ipv6.conf.all.forwarding=1\n" > /etc/local.d/enable_forwarding.start
+echo -e "#!/bin/sh\nsysctl -w net.ipv4.ip_forward=1\nsysctl -w net.ipv6.conf.all.forwarding=1" > /etc/local.d/enable_forwarding.start
 chmod +x /etc/local.d/enable_forwarding.start
 ```
 #### 路由表设置
@@ -53,7 +53,7 @@ ip rule add fwmark 1 table 100
 > 允许转发重启后会失效
 ```
 # 脚本存放目录/etc/local.d/
-echo -e "#!/bin/sh\nip route add local default dev lo table 100\nip rule add fwmark 1 table 100\n" > /etc/local.d/add_routing_table.start
+echo -e "#!/bin/sh\nip route add local default dev lo table 100\nip rule add fwmark 1 table 100" > /etc/local.d/add_routing_table.start
 chmod +x /etc/local.d/add_routing_table.start
 ```
 
