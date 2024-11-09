@@ -13,6 +13,8 @@ rc-service nftables start
 rc-update add nftables default
 rc-service sshd start
 rc-update add sshd default
+# 开机执行脚本服务
+rc-update add local default
 ```
 
 #### 配置系统内核允许转发
@@ -22,12 +24,23 @@ net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
 ```
 ```
+# 或者执行
+sysctl -w net.ipv4.ip_forward=1
+sysctl -w net.ipv6.conf.all.forwarding=1
+```
+```
 # 启用转发
 sysctl -p
 # 确认转发启用
 cat /proc/sys/net/ipv4/ip_forward
 # 或
 sysctl net.ipv4.ip_forward
+```
+#### 添加转发开启脚本到开机启动
+```
+# 脚本存放目录/etc/local.d/
+echo -e "#!/bin/sh\nsysctl -w net.ipv4.ip_forward=1\nsysctl -w net.ipv6.conf.all.forwarding=1" > /etc/local.d/enable_forwarding.start
+chmod +x /etc/local.d/enable_forwarding.start
 ```
 #### 路由表设置
 ```
