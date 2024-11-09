@@ -38,7 +38,7 @@ cat /proc/sys/net/ipv4/ip_forward
 sysctl net.ipv4.ip_forward
 ```
 #### 添加转发开启脚本到开机启动
-*允许转发重启后会失效*
+> 允许转发重启后会失效
 ```
 # 脚本存放目录/etc/local.d/
 echo -e "#!/bin/sh\nsysctl -w net.ipv4.ip_forward=1\nsysctl -w net.ipv6.conf.all.forwarding=1" > /etc/local.d/enable_forwarding.start
