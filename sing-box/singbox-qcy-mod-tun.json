@@ -454,6 +454,19 @@
                 "outbound": "🎯 全球直连"
             },
             {
+                "rule_set": [
+                    "custom-direct",
+                    "steam-cn"
+                ],
+                "outbound": "🎯 全球直连"
+            },
+            {
+                "rule_set": [
+                    "custom-proxy"
+                ],
+                "outbound": "🚀 节点选择"
+            },
+            {
                 "rule_set": "geosite-openai",
                 "outbound": "🤖 OpenAI"
             },
@@ -499,15 +512,12 @@
             },
             {
                 "rule_set": [
-                    "custom-proxy",
                     "geosite-geolocation-!cn"
                 ],
                 "outbound": "🚀 节点选择"
             },
             {
                 "rule_set": [
-                    "custom-direct",
-                    "steam-cn",
                     "geoip-cn",
                     "geosite-cn"
                 ],
