@@ -50,16 +50,16 @@
                 "server": "localDns"
             },
             {
-                "clash_mode": "global",
-                "server": "proxyDns"
-            },
-            {
                 "rule_set": [
                     "custom-direct",
                     "steam-cn",
                     "geosite-cn"
                 ],
                 "server": "localDns"
+            },
+            {
+                "clash_mode": "global",
+                "server": "proxyDns"
             },
             {
                 "query_type": [
@@ -114,20 +114,13 @@
             "sniff": true,
             "platform": {
               "http_proxy": {
-                "enabled": true,
+                "enabled": false,
                 "server": "127.0.0.1",
                 "server_port": 7890,
                 "bypass_domain": [],
                 "match_domain": []
               }
             }
-        },
-        {
-            "tag": "mixed",
-            "type": "mixed",
-            "listen": "127.0.0.1",
-            "listen_port": 7890,
-            "sniff": true
         }
     ],
     "outbounds": [
