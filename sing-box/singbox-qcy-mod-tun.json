@@ -13,8 +13,7 @@
             "default_mode": "rule"
         },
         "cache_file": {
-          "enabled": true,
-          "store_fakeip": true
+          "enabled": true
         }
     },
     "dns": {
@@ -55,7 +54,11 @@
                 "server": "proxyDns"
             },
             {
-                "rule_set": "geosite-cn",
+                "rule_set": [
+                    "custom-direct",
+                    "steam-cn",
+                    "geosite-cn"
+                ],
                 "server": "localDns"
             },
             {
