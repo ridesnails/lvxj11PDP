@@ -7,6 +7,15 @@ apk upgrade
 echo "安装常用工具..."
 apk add curl nftables openssh net-tools
 
+# 修改sshd_config，允许root远程登录
+echo -e "PermitRootLogin yes" >> /etc/ssh/sshd_config
+# 改名nftables.nft文件，默认配置可能禁用入站导致不能访问。
+# 随后可根据需要配置nftable
+mv /etc/nftables.nft /etc/nftables.nft.bak
+# 新建空nft文件
+touch /etc/nftables.nft
+
+# 启动nftables、sshd和local服务
 echo "启动nftables, sshd和local服务..."
 rc-service nftables start
 rc-update add nftables default
