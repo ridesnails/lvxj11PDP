@@ -507,6 +507,7 @@
             {
                 "rule_set": [
                     "custom-direct",
+                    "steam-cn",
                     "geoip-cn",
                     "geosite-cn"
                 ],
@@ -631,6 +632,13 @@
                 "type": "remote",
                 "format": "binary",
                 "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geoip/cn.srs",
+                "download_detour": "🎯 全球直连"
+            },
+            {
+                "tag": "steam-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/steam%40cn.srs",
                 "download_detour": "🎯 全球直连"
             },
             {
