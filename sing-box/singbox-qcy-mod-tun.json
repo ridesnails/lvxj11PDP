@@ -46,6 +46,10 @@
                 "disable_cache": true
             },
             {
+                "rule_set": "custom-proxy",
+                "server": "proxyDns"
+            },
+            {
                 "clash_mode": "direct",
                 "server": "localDns"
             },
@@ -451,16 +455,16 @@
             },
             {
                 "rule_set": [
+                    "custom-proxy"
+                ],
+                "outbound": "🚀 节点选择"
+            },
+            {
+                "rule_set": [
                     "custom-direct",
                     "steam-cn"
                 ],
                 "outbound": "🎯 全球直连"
-            },
-            {
-                "rule_set": [
-                    "custom-proxy"
-                ],
-                "outbound": "🚀 节点选择"
             },
             {
                 "rule_set": "geosite-openai",
