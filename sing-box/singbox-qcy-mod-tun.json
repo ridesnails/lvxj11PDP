@@ -1,6 +1,7 @@
 {
     "log": {
         "level": "info",
+        "output": "box.log",
         "timestamp": true
     },
     "experimental": {
@@ -31,6 +32,11 @@
                 "detour": "🎯 全球直连"
             },
             {
+                "tag": "routeDns",
+                "address": "192.168.56.1",
+                "detour": "🎯 全球直连"
+            },
+            {
                 "tag": "fakeip",
                 "address": "fakeip"
             },
@@ -46,24 +52,32 @@
                 "disable_cache": true
             },
             {
+                "rule_set": "geosite-private",
+                "server": "routeDns"
+            },
+            {
                 "rule_set": "custom-proxy",
                 "server": "proxyDns"
+            },
+            {
+                "rule_set": "custom-direct",
+                "server": "localDns"
             },
             {
                 "clash_mode": "direct",
                 "server": "localDns"
             },
             {
+                "clash_mode": "global",
+                "server": "proxyDns"
+            },
+            {
                 "rule_set": [
-                    "custom-direct",
                     "steam-cn",
+                    "geosite-ntp",
                     "geosite-cn"
                 ],
                 "server": "localDns"
-            },
-            {
-                "clash_mode": "global",
-                "server": "proxyDns"
             },
             {
                 "query_type": [
@@ -462,6 +476,7 @@
             {
                 "rule_set": [
                     "custom-direct",
+                    "geosite-ntp",
                     "steam-cn"
                 ],
                 "outbound": "🎯 全球直连"
@@ -656,6 +671,20 @@
                 "type": "remote",
                 "format": "binary",
                 "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/cn.srs",
+                "download_detour": "🎯 全球直连"
+            },
+            {
+                "tag": "geosite-private",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/private.srs",
+                "download_detour": "🎯 全球直连"
+            },
+            {
+                "tag": "geosite-ntp",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/category-ntp.srs",
                 "download_detour": "🎯 全球直连"
             }
         ]
