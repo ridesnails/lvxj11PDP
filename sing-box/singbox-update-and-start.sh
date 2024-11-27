@@ -39,11 +39,10 @@ update_app() {
         log "INFO" "更新系统及应用..."
         apk update
         apk upgrade
-        python3 -m pip install --upgrade pip
         apk upgrade sing-box --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
         # 克隆订阅转换脚本到/root目录下
         log "INFO" "更新订阅转换脚本..."
-        git clone https://mirror.ghproxy.com/https://github.com/Toperlock/sing-box-subscribe.git /root/
+        git clone https://mirror.ghproxy.com/https://github.com/Toperlock/sing-box-subscribe.git /root/sing-box-subscribe
         mv /root/sing-box-subscribe /opt/sing-box-subscribe
         # 建立python虚拟环境
         log "INFO" "建立python虚拟环境..."
@@ -100,27 +99,32 @@ EOF
     source /opt/sing-box-subscribe/venv/bin/activate
     # 开始订阅转换
     log "INFO" "转换订阅..."
+    cd /opt/sing-box-subscribe
     # 如果配置文件路径以http://或https://开头，则下载，否则作为本地文件移动到指定位置
-    if [[ ${CONFIG_TEMPLATE_FILE} =~ ^(http|https):// ]]; then
-        # 替换providers.json中的onfig_template
-        log "INFO" "配置模板为远程url，修改providers.json文件..."
-        jq --arg config_template_url "${CONFIG_TEMPLATE_FILE}" '.config_template=$config_template_url' /opt/sing-box-subscribe/providers.json > /tmp/providers.json
-        mv /tmp/providers.json /opt/sing-box-subscribe/providers.json
-        python3 main.py
-    else
-        # 判断文件是否存在
-        if [ ! -f ${CONFIG_TEMPLATE_FILE} ]; then
-            log "ERROR" "配置文件不存在，请检查配置模板路径是否正确！"
-            exit 1
-        fi
-        log "INFO" "配置模板为远程本地路径，修改providers.json文件..."
-        jq '.config_template=""' /opt/sing-box-subscribe/providers.json > /tmp/providers.json
-        mv /tmp/providers.json /opt/sing-box-subscribe/providers.json
-        # 保证配置模板为模板目录下唯一文件
-        mv ${CONFIG_TEMPLATE_FILE} /tmp/config_template.json
-        rm -f /opt/sing-box-subscribe/config_template/*
-        mv /tmp/config_template.json /opt/sing-box-subscribe/config_template/
-    fi
+    case "$CONFIG_TEMPLATE_FILE" in
+        http://*|https://*)
+            # 替换providers.json中的onfig_template
+            log "INFO" "配置模板为远程url，修改providers.json文件..."
+            jq --arg config_template_url "${CONFIG_TEMPLATE_FILE}" '.config_template=$config_template_url' /opt/sing-box-subscribe/providers.json > /tmp/providers.json
+            mv /tmp/providers.json /opt/sing-box-subscribe/providers.json
+            python3 main.py
+            ;;
+        *)
+            # 判断文件是否存在
+            if [ ! -f ${CONFIG_TEMPLATE_FILE} ]; then
+                log "ERROR" "配置文件不存在，请检查配置模板路径是否正确！"
+                exit 1
+            fi
+            log "INFO" "配置模板为远程本地路径，修改providers.json文件..."
+            jq '.config_template=""' /opt/sing-box-subscribe/providers.json > /tmp/providers.json
+            mv /tmp/providers.json /opt/sing-box-subscribe/providers.json
+            # 保证配置模板为模板目录下唯一文件
+            mv ${CONFIG_TEMPLATE_FILE} /tmp/config_template.json
+            rm -f /opt/sing-box-subscribe/config_template/*
+            mv /tmp/config_template.json /opt/sing-box-subscribe/config_template/
+            python3 main.py --template_index=0
+            ;;
+    esac
     # 退出虚拟环境
     deactivate
     # 备份原配置文件
