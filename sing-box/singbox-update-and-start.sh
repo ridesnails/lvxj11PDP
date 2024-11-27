@@ -45,10 +45,19 @@ update_app() {
         log "INFO" "更新订阅转换脚本..."
         git clone https://mirror.ghproxy.com/https://github.com/Toperlock/sing-box-subscribe.git /root/
         mv /root/sing-box-subscribe /opt/sing-box-subscribe
+        # 建立python虚拟环境
+        log "INFO" "建立python虚拟环境..."
+        python3 -m venv /opt/sing-box-subscribe/venv
+        source /opt/sing-box-subscribe/venv/bin/activate
+        # 更新pip
+        log "INFO" "更新pip..."
+        python3 -m pip install --upgrade pip
         # 安装依赖包
         log "INFO" "安装依赖包..."
         cd /opt/sing-box-subscribe
         python3 -m pip install -r requirements.txt
+        # 退出虚拟环境
+        deactivate
         # 将当前日期存储到update.data文件中
         log "INFO" "更新完成，保存更新日期..."
         date > /root/update.data
@@ -87,6 +96,8 @@ convert_subscription() {
     "Only-nodes": false
 }
 EOF
+    # 激活虚拟环境
+    source /opt/sing-box-subscribe/venv/bin/activate
     # 开始订阅转换
     log "INFO" "转换订阅..."
     # 如果配置文件路径以http://或https://开头，则下载，否则作为本地文件移动到指定位置
@@ -110,6 +121,8 @@ EOF
         rm -f /opt/sing-box-subscribe/config_template/*
         mv /tmp/config_template.json /opt/sing-box-subscribe/config_template/
     fi
+    # 退出虚拟环境
+    deactivate
     # 备份原配置文件
     log "INFO" "备份原配置文件..."
     mv /etc/sing-box/config.json /etc/sing-box/config.json.$(date '+%Y%m%d%H%M%S')

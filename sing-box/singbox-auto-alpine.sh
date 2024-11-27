@@ -8,9 +8,6 @@ apk update
 apk upgrade
 echo "安装常用工具..."
 apk add curl nftables openssh net-tools jq git python3 py3-pip
-# 升级pip
-echo "升级 pip..."
-python3 -m pip install --upgrade pip
 
 # 修改sshd_config，允许root远程登录
 echo "修改 sshd 配置，允许root远程登录..."
