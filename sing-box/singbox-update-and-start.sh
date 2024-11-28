@@ -12,7 +12,6 @@ EXCLUDE_KEYWORD="网站|地址|剩余|过期|时间|有效|到期|官网"
 # 如果模板文件使用本地文件一定保存到其他目录，不要保存到默认的模板目录。脚本会清空默认模板目录后自动拷贝副本到模板目录，以保证使用正确的配置模板。
 CONFIG_TEMPLATE_FILE="https://mirror.ghproxy.com/https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/sing-box/singbox-qcy-mod-tun.json"
 # 如果要自定义其他选项，请找到脚本中选项的生成位置自行修改。
-
 rotate_log() {
   local max_size=1048576  # 最大大小：1MB
   if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -ge "$max_size" ]; then
@@ -20,7 +19,6 @@ rotate_log() {
     touch "$LOG_FILE"
   fi
 }
-
 log() {
   rotate_log
   local level=$1
@@ -28,10 +26,9 @@ log() {
   local message="[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $*"
   echo "$message" | tee -a "$LOG_FILE"
 }
-
 update_app() {
     # 检查是否需要更新
-    if [ ! -f "./update.data" ] || [ $(( $(date +%s) - $(date +%s -r /root/update.data) )) -gt $(${SUBSCRIBE_EXPIRE_TIME} * 24 * 60 * 60) ]; then
+    if [ ! -f "/root/update.data" ] || [ $(( $(date +%s) - $(date +%s -r /root/update.data) )) -gt $(${SUBSCRIBE_EXPIRE_TIME} * 24 * 60 * 60) ]; then
         log "INFO" "更新时间过期，开始更新..."
         rm -f /root/update.data
         rm -rf /root/sing-box-subscribe
@@ -57,6 +54,7 @@ update_app() {
         python3 -m pip install -r requirements.txt
         # 退出虚拟环境
         deactivate
+        cd
         # 将当前日期存储到update.data文件中
         log "INFO" "更新完成，保存更新日期..."
         date > /root/update.data
@@ -127,6 +125,7 @@ EOF
     esac
     # 退出虚拟环境
     deactivate
+    cd
     # 备份原配置文件
     log "INFO" "备份原配置文件..."
     mv /etc/sing-box/config.json /etc/sing-box/config.json.$(date '+%Y%m%d%H%M%S')
