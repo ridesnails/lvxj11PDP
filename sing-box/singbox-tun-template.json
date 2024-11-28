@@ -14,7 +14,7 @@
             "default_mode": "rule"
         },
         "cache_file": {
-          "enabled": true
+            "enabled": true
         }
     },
     "dns": {
@@ -78,8 +78,8 @@
             "tag": "tun-in",
             "interface_name": "tun0",
             "address": [
-              "172.18.0.1/30",
-              "fdfe:dcba:9876::1/126"
+                "172.18.0.1/30",
+                "fdfe:dcba:9876::1/126"
             ],
             "mtu": 9000,
             "auto_route": true,
@@ -89,19 +89,19 @@
             "auto_redirect_input_mark": "0x2023",
             "auto_redirect_output_mark": "0x2024",
             "route_exclude_address_set": [
-              "geoip-cn"
+                "geoip-cn"
             ],
             "udp_timeout": "5m",
             "stack": "system",
             "sniff": true,
             "platform": {
-              "http_proxy": {
-                "enabled": false,
-                "server": "127.0.0.1",
-                "server_port": 7890,
-                "bypass_domain": [],
-                "match_domain": []
-              }
+                "http_proxy": {
+                    "enabled": false,
+                    "server": "127.0.0.1",
+                    "server_port": 7890,
+                    "bypass_domain": [],
+                    "match_domain": []
+                }
             }
         }
     ],
@@ -376,6 +376,22 @@
             "outbounds": [
                 "🚀 节点选择",
                 "🎯 直连",
+                "👆 手动切换"
+            ]
+        },
+        {
+            "tag": "GLOBAL",
+            "type": "selector",
+            "outbounds": [
+                "♻️ 自动选择",
+                "🎯 直连",
+                "🇭🇰 香港自动",
+                "🇺🇸 美国自动",
+                "🇸🇬 狮城自动",
+                "🇭🇰 香港节点",
+                "🇺🇸 美国节点",
+                "🇸🇬 狮城节点",
+                "🐸 日韩节点",
                 "👆 手动切换"
             ]
         },
