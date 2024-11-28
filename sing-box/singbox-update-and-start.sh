@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-LOG_FILE="./singbox-update-and-start.log"
+LOG_FILE="/root/singbox-update-and-start.log"
 # 设定订阅转换脚本过期时间，单位为天
 SUBSCRIBE_EXPIRE_TIME=7
 # 代理订阅地址
