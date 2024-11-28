@@ -7,8 +7,11 @@ echo "初始化 Alpine 系统..."
 apk update
 apk upgrade
 echo "安装常用工具..."
-apk add curl nftables openssh net-tools jq git python3 py3-pip
-
+apk add curl nftables openssh net-tools tzdata jq git python3 py3-pip
+# 设定时区
+echo "设置时区..."
+ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+echo "Asia/Shanghai" > /etc/timezone
 # 修改sshd_config，允许root远程登录
 echo "修改 sshd 配置，允许root远程登录..."
 echo -e "PermitRootLogin yes" >> /etc/ssh/sshd_config
