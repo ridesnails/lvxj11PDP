@@ -69,7 +69,6 @@
             }
         ],
         "final": "localDns",
-        "independent_cache": true,
         "strategy": "prefer_ipv4"
     },
     "inbounds": [
