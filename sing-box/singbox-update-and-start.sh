@@ -10,7 +10,7 @@ USER_AGENT="clashmeta"
 EXCLUDE_KEYWORD="网站|地址|剩余|过期|时间|有效|到期|官网"
 # 配置模板文件，建议使用远程url
 # 如果模板文件使用本地文件一定保存到其他目录，不要保存到默认的模板目录。脚本会清空默认模板目录后自动拷贝副本到模板目录，以保证使用正确的配置模板。
-CONFIG_TEMPLATE_FILE="https://mirror.ghproxy.com/https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/sing-box/singbox-qcy-mod-tun.json"
+CONFIG_TEMPLATE_FILE="https://mirror.ghproxy.com/https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/sing-box/singbox-tun-template.json"
 # 如果要自定义其他选项，请找到脚本中选项的生成位置自行修改。
 rotate_log() {
   local max_size=1048576  # 最大大小：1MB
