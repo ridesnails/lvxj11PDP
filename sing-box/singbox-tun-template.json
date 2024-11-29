@@ -1,5 +1,6 @@
 {
     "log": {
+        "disabled": false,
         "level": "info",
         "output": "box.log",
         "timestamp": true
@@ -14,7 +15,12 @@
             "default_mode": "rule"
         },
         "cache_file": {
-            "enabled": true
+            "enabled": true,
+            "path": "",
+            "cache_id": "",
+            "store_fakeip": false,
+            "store_rdrc": false,
+            "rdrc_timeout": "7d"
         }
     },
     "dns": {
@@ -448,7 +454,10 @@
                 "outbound": "🎯 直连"
             },
             {
-                "rule_set": "geosite-category-ai-chat-!cn",
+                "rule_set": [
+                    "geosite-openai",
+                    "geosite-category-ai-chat-!cn"
+                ],
                 "outbound": "🤖 国外AI"
             },
             {
@@ -519,6 +528,13 @@
                 "type": "remote",
                 "format": "binary",
                 "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/category-ai-chat-!cn.srs",
+                "download_detour": "🎯 直连"
+            },
+            {
+                "tag": "geosite-openai",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/Toperlock/sing-box-geosite/main/rule/OpenAI.srs",
                 "download_detour": "🎯 直连"
             },
             {
