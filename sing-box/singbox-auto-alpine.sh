@@ -1,6 +1,11 @@
 #!/bin/sh
 # 在alpine中部署singbox和订阅转换，并自动化更新。
 set -e
+# 判断脚本是否有root权限
+if [ "$(id -u)" != "0" ]; then
+    echo "请使用root用户运行脚本！"
+    exit 1
+fi
 SINGBOX_RUNSCRIBE="https://mirror.ghproxy.com/https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/sing-box/singbox-update-and-start.sh"
 # 初始化Alpine系统，适配版本3.20
 echo "初始化 Alpine 系统..."
@@ -43,12 +48,14 @@ chmod +x /etc/local.d/enable_forwarding.start
 # 安装singbox
 apk add sing-box --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
 rc-update add sing-box default
+# 建立/opt/sing-box-update-and-start文件夹
+mkdir -p /opt/sing-box-update-and-start
 # 下载singbox升级和开始脚本
-wget -O /root/singbox-update-and-start.sh ${SINGBOX_RUNSCRIBE}
-chmod +x /root/singbox-update-and-start.sh
+wget -O /opt/sing-box-update-and-start/singbox-update-and-start.sh ${SINGBOX_RUNSCRIBE}
+chmod +x /opt/sing-box-update-and-start/singbox-update-and-start.sh
 # 添加计划任务每天凌晨2点运行一次
 echo "添加计划任务..."
-echo "0 2 * * * /root/singbox-update-and-start.sh" >> /var/spool/cron/crontabs/root
+echo "0 2 * * * /opt/sing-box-update-and-start/singbox-update-and-start.sh" >> /etc/crontabs/root
 # 安装完成
 echo "安装完成。"
 echo "修改/root/singbox-update-and-start.sh脚本中的参数并运行。"

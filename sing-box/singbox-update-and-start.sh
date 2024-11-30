@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
-LOG_FILE="/root/singbox-update-and-start.log"
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+CURRENT_DATE=$(date '+%Y%m%d%H%M%S')
+LOG_FILE="${SCRIPT_DIR}/singbox-update-and-start.log"
 # 设定订阅转换脚本过期时间，单位为天
 SUBSCRIBE_EXPIRE_TIME=7
 # 代理订阅地址
@@ -28,9 +30,9 @@ log() {
 }
 update_app() {
     # 检查是否需要更新
-    if [ ! -f "/root/update.data" ] || [ $(( $(date +%s) - $(date +%s -r /root/update.data) )) -gt $(${SUBSCRIBE_EXPIRE_TIME} * 24 * 60 * 60) ]; then
+    if [ ! -f "${SCRIPT_DIR}/update.date" ] || [ $(( $(date +%s) - $(date +%s -r ${SCRIPT_DIR}/update.date) )) -gt $(${SUBSCRIBE_EXPIRE_TIME} * 24 * 60 * 60) ]; then
         log "INFO" "更新时间过期，开始更新..."
-        rm -f /root/update.data
+        rm -f ${SCRIPT_DIR}/update.date
         rm -rf /root/sing-box-subscribe
         rm -rf /opt/sing-box-subscribe
         log "INFO" "更新系统及应用..."
@@ -50,14 +52,12 @@ update_app() {
         python3 -m pip install --upgrade pip
         # 安装依赖包
         log "INFO" "安装依赖包..."
-        cd /opt/sing-box-subscribe
-        python3 -m pip install -r requirements.txt
+        python3 -m pip install -r /opt/sing-box-subscribe/requirements.txt
         # 退出虚拟环境
         deactivate
-        cd
-        # 将当前日期存储到update.data文件中
+        # 将当前日期存储到update.date文件中
         log "INFO" "更新完成，保存更新日期..."
-        date > /root/update.data
+        date > ${SCRIPT_DIR}/update.date
     else
         log "INFO" "订阅转换脚本未过期，跳过更新..."
     fi
@@ -97,7 +97,6 @@ EOF
     source /opt/sing-box-subscribe/venv/bin/activate
     # 开始订阅转换
     log "INFO" "转换订阅..."
-    cd /opt/sing-box-subscribe
     # 如果配置文件路径以http://或https://开头，则下载，否则作为本地文件移动到指定位置
     case "$CONFIG_TEMPLATE_FILE" in
         http://*|https://*)
@@ -105,7 +104,7 @@ EOF
             log "INFO" "配置模板为远程url，修改providers.json文件..."
             jq --arg config_template_url "${CONFIG_TEMPLATE_FILE}" '.config_template=$config_template_url' /opt/sing-box-subscribe/providers.json > /tmp/providers.json
             mv /tmp/providers.json /opt/sing-box-subscribe/providers.json
-            python3 main.py
+            python3 /opt/sing-box-subscribe/main.py
             ;;
         *)
             # 判断文件是否存在
@@ -120,15 +119,19 @@ EOF
             mv ${CONFIG_TEMPLATE_FILE} /tmp/config_template.json
             rm -f /opt/sing-box-subscribe/config_template/*
             mv /tmp/config_template.json /opt/sing-box-subscribe/config_template/
-            python3 main.py --template_index=0
+            python3 /opt/sing-box-subscribe/main.py --template_index=0
             ;;
     esac
     # 退出虚拟环境
     deactivate
-    cd
+    # 检查转换结果
+    if ! sing-box check -c /opt/sing-box-subscribe/config.json; then
+        log "ERROR" "配置文件验证失败，退出脚本..."
+        exit 1
+    fi
     # 备份原配置文件
     log "INFO" "备份原配置文件..."
-    mv /etc/sing-box/config.json /etc/sing-box/config.json.$(date '+%Y%m%d%H%M%S')
+    mv /etc/sing-box/config.json /etc/sing-box/config.json.${CURRENT_DATE}
     # 替换配置文件
     log "INFO" "替换配置文件..."
     mv /opt/sing-box-subscribe/config.json /etc/sing-box/config.json
