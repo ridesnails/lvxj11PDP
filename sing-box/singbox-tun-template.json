@@ -28,6 +28,7 @@
             {
                 "tag": "proxyDns",
                 "address": "tls://8.8.8.8",
+                "strategy": "ipv4_only",
                 "address_resolver": "localDns",
                 "address_strategy": "ipv4_only",
                 "detour": "🚀 节点选择"
@@ -52,6 +53,14 @@
                 "outbound": "any",
                 "server": "localDns",
                 "disable_cache": true
+            },
+            {
+              "clash_mode": "direct",
+              "server": "localDns"
+            },
+            {
+              "clash_mode": "global",
+              "server": "proxyDns"
             },
             {
                 "rule_set": "geosite-private",
@@ -425,6 +434,14 @@
                     }
                 ],
                 "outbound": "dns-out"
+            },
+            {
+              "clash_mode": "direct",
+              "outbound": "🎯 直连"
+            },
+            {
+              "clash_mode": "global",
+              "outbound": "GLOBAL"
             },
             {
                 "domain": [
