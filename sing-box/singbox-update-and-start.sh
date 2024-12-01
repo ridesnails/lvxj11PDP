@@ -139,7 +139,7 @@ EOF
     # 检查转换结果
     if ! sing-box check -c /opt/sing-box-subscribe/config.json; then
         log "ERROR" "配置文件验证失败，退出脚本..."
-        exit 1
+        return
     fi
     # 备份原配置文件
     log "INFO" "备份原配置文件..."
