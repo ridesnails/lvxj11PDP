@@ -93,8 +93,6 @@ convert_subscription() {
     "Only-nodes": false
 }
 EOF
-    # 激活虚拟环境
-    source /opt/sing-box-subscribe/venv/bin/activate
     # 开始订阅转换
     log "INFO" "转换订阅..."
     # 如果配置文件路径以http://或https://开头，则下载，否则作为本地文件移动到指定位置
@@ -104,7 +102,15 @@ EOF
             log "INFO" "配置模板为远程url，修改providers.json文件..."
             jq --arg config_template_url "${CONFIG_TEMPLATE_FILE}" '.config_template=$config_template_url' /opt/sing-box-subscribe/providers.json > /tmp/providers.json
             mv /tmp/providers.json /opt/sing-box-subscribe/providers.json
-            python3 /opt/sing-box-subscribe/main.py
+            # 使用子线程，防止环境变量丢失
+            (
+                cd /opt/sing-box-subscribe
+                # 激活虚拟环境
+                source ./venv/bin/activate
+                python3 main.py
+                # 退出虚拟环境
+                deactivate
+            )
             ;;
         *)
             # 判断文件是否存在
@@ -119,11 +125,17 @@ EOF
             mv ${CONFIG_TEMPLATE_FILE} /tmp/config_template.json
             rm -f /opt/sing-box-subscribe/config_template/*
             mv /tmp/config_template.json /opt/sing-box-subscribe/config_template/
-            python3 /opt/sing-box-subscribe/main.py --template_index=0
+            # 使用子线程，防止环境变量丢失
+            (
+                cd /opt/sing-box-subscribe
+                # 激活虚拟环境
+                source ./venv/bin/activate
+                python3 main.py --template_index=0
+                # 退出虚拟环境
+                deactivate
+            )
             ;;
     esac
-    # 退出虚拟环境
-    deactivate
     # 检查转换结果
     if ! sing-box check -c /opt/sing-box-subscribe/config.json; then
         log "ERROR" "配置文件验证失败，退出脚本..."
