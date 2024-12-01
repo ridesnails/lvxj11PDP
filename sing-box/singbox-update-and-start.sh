@@ -28,6 +28,29 @@ log() {
   local message="[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $*"
   echo "$message" | tee -a "$LOG_FILE"
 }
+# 从配置文件获取配置
+get_settings() {
+    # 如果settings.json文件存在，则从settings.json文件中获取配置
+    settings_file="${SCRIPT_DIR}/settings.json"
+    if [ -f "${settings_file}" ]; then
+        # 读取setup.json文件中的配置,如配置文件中没有配置，则使用默认配置
+        log "INFO" "从setup.json文件中获取配置..."
+        local new_value=$(jq -r '.subscribe_expire_time // empty' "${settings_file}")
+        [ -n "${new_value}" ] && SUBSCRIBE_EXPIRE_TIME=${new_value}
+        new_value=$(jq -r '.subscribe_url // empty' "${settings_file}")
+        [ -n "${new_value}" ] && SUBSCRIBE_URL=${new_value}
+        new_value=$(jq -r '.user_agent // empty' "${settings_file}")
+        [ -n "${new_value}" ] && USER_AGENT=${new_value}
+        new_value=$(jq -r '.exclude_keyword // empty' "${settings_file}")
+        [ -n "${new_value}" ] && EXCLUDE_KEYWORD=${new_value}
+        new_value=$(jq -r '.config_template_file // empty' "${settings_file}")
+        [ -n "${new_value}" ] && CONFIG_TEMPLATE_FILE=${new_value}
+        if [ -z "$SUBSCRIBE_URL" ]; then
+            log "ERROR" "没有配置订阅地址，请检查！"
+            exit 1
+        fi
+    fi
+}
 update_app() {
     # 检查是否需要更新
     if [ ! -f "${SCRIPT_DIR}/update.date" ] || [ $(( $(date +%s) - $(date +%s -r ${SCRIPT_DIR}/update.date) )) -gt $(${SUBSCRIBE_EXPIRE_TIME} * 24 * 60 * 60) ]; then
@@ -79,7 +102,7 @@ convert_subscription() {
             "subgroup": "",
             "prefix": "",
             "ex-node-name": "${EXCLUDE_KEYWORD}",
-            "User-Agent":"clashmeta"
+            "User-Agent":"${USER_AGENT}"
         }
     ],
     "auto_set_outbounds_dns":{
@@ -148,7 +171,8 @@ EOF
     log "INFO" "替换配置文件..."
     mv /opt/sing-box-subscribe/config.json /etc/sing-box/config.json
 }
-
+# 获取配置
+get_settings
 # 停止sing-box
 log "INFO" "停止sing-box..."
 rc-service sing-box stop
