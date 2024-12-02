@@ -24,6 +24,11 @@
         }
     },
     "dns": {
+        "fakeip": {
+            "enabled": true,
+            "inet4_range": "198.18.0.0/15",
+            "inet6_range": "fc00::/18"
+        },
         "servers": [
             {
                 "tag": "proxyDns",
@@ -55,12 +60,12 @@
                 "disable_cache": true
             },
             {
-              "clash_mode": "direct",
-              "server": "localDns"
+                "clash_mode": "direct",
+                "server": "localDns"
             },
             {
-              "clash_mode": "global",
-              "server": "proxyDns"
+                "clash_mode": "global",
+                "server": "proxyDns"
             },
             {
                 "rule_set": "geosite-private",
@@ -79,7 +84,21 @@
                 "server": "localDns"
             },
             {
-                "rule_set": "geosite-geolocation-!cn",
+                "query_type": [
+                    "A",
+                    "AAAA"
+                ],
+                "rule_set": [
+                    "geosite-gfw",
+                    "geosite-geolocation-!cn"
+                ],
+                "server": "fakeip"
+            },
+            {
+                "rule_set": [
+                    "geosite-gfw",
+                    "geosite-geolocation-!cn"
+                ],
                 "server": "proxyDns"
             }
         ],
@@ -436,12 +455,12 @@
                 "outbound": "dns-out"
             },
             {
-              "clash_mode": "direct",
-              "outbound": "🎯 直连"
+                "clash_mode": "direct",
+                "outbound": "🎯 直连"
             },
             {
-              "clash_mode": "global",
-              "outbound": "GLOBAL"
+                "clash_mode": "global",
+                "outbound": "GLOBAL"
             },
             {
                 "domain": [
