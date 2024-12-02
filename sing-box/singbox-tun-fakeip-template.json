@@ -24,6 +24,11 @@
         }
     },
     "dns": {
+        "fakeip": {
+            "enabled": true,
+            "inet4_range": "198.18.0.0/15",
+            "inet6_range": "fc00::/18"
+        },
         "servers": [
             {
                 "tag": "proxyDns",
@@ -77,6 +82,17 @@
                     "steam-cn"
                 ],
                 "server": "localDns"
+            },
+            {
+                "query_type": [
+                    "A",
+                    "AAAA"
+                ],
+                "rule_set": [
+                    "geosite-gfw",
+                    "geosite-geolocation-!cn"
+                ],
+                "server": "fakeip"
             },
             {
                 "rule_set": [
