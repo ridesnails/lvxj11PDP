@@ -51,23 +51,28 @@
         "rules": [
             {
                 "outbound": "any",
+                "action": "route",
                 "server": "localDns",
                 "disable_cache": true
             },
             {
                 "clash_mode": "direct",
+                "action": "route",
                 "server": "localDns"
             },
             {
                 "clash_mode": "global",
+                "action": "route",
                 "server": "proxyDns"
             },
             {
                 "rule_set": "geosite-private",
+                "action": "route",
                 "server": "routeDns"
             },
             {
                 "rule_set": "custom-proxy",
+                "action": "route",
                 "server": "proxyDns"
             },
             {
@@ -76,6 +81,7 @@
                     "geosite-ntp",
                     "steam-cn"
                 ],
+                "action": "route",
                 "server": "localDns"
             },
             {
@@ -83,6 +89,7 @@
                     "geosite-gfw",
                     "geosite-geolocation-!cn"
                 ],
+                "action": "route",
                 "server": "proxyDns"
             }
         ],
@@ -111,7 +118,6 @@
             "endpoint_independent_nat": false,
             "udp_timeout": "5m",
             "stack": "system",
-            "sniff": true,
             "platform": {
                 "http_proxy": {
                     "enabled": false,
@@ -253,8 +259,8 @@
             "tag": "🐟 漏网之鱼",
             "type": "selector",
             "outbounds": [
-                "🚀 节点选择",
                 "🎯 直连",
+                "🚀 节点选择",
                 "👆 手动切换"
             ]
         },
@@ -279,7 +285,8 @@
             "type": "selector",
             "outbounds": [
                 "{all}"
-            ]
+            ],
+            "interrupt_exist_connections": true
         },
         {
             "tag": "♻️ 自动选择",
@@ -416,10 +423,6 @@
         {
             "tag": "🎯 直连",
             "type": "direct"
-        },
-        {
-            "tag": "dns-out",
-            "type": "dns"
         }
     ],
     "route": {
@@ -427,24 +430,20 @@
         "final": "🐟 漏网之鱼",
         "rules": [
             {
-                "type": "logical",
-                "mode": "or",
-                "rules": [
-                    {
-                        "port": 53
-                    },
-                    {
-                        "protocol": "dns"
-                    }
-                ],
-                "outbound": "dns-out"
+                "action": "sniff"
+            },
+            {
+                "protocol": "dns",
+                "action": "hijack-dns"
             },
             {
                 "clash_mode": "direct",
+                "action": "route",
                 "outbound": "🎯 直连"
             },
             {
                 "clash_mode": "global",
+                "action": "route",
                 "outbound": "GLOBAL"
             },
             {
@@ -454,16 +453,19 @@
                     "yacd.haishan.me",
                     "d.metacubex.one"
                 ],
+                "action": "route",
                 "outbound": "🎯 直连"
             },
             {
                 "ip_is_private": true,
+                "action": "route",
                 "outbound": "🎯 直连"
             },
             {
                 "rule_set": [
                     "custom-proxy"
                 ],
+                "action": "route",
                 "outbound": "🚀 节点选择"
             },
             {
@@ -472,6 +474,7 @@
                     "geosite-ntp",
                     "steam-cn"
                 ],
+                "action": "route",
                 "outbound": "🎯 直连"
             },
             {
@@ -479,10 +482,12 @@
                     "geosite-openai",
                     "geosite-category-ai-chat-!cn"
                 ],
+                "action": "route",
                 "outbound": "🤖 国外AI"
             },
             {
                 "rule_set": "geosite-youtube",
+                "action": "route",
                 "outbound": "📹 YouTube"
             },
             {
@@ -490,6 +495,7 @@
                     "geoip-google",
                     "geosite-google"
                 ],
+                "action": "route",
                 "outbound": "🍀 Google"
             },
             {
@@ -497,10 +503,12 @@
                     "geoip-telegram",
                     "geosite-telegram"
                 ],
+                "action": "route",
                 "outbound": "📲 Telegram"
             },
             {
                 "rule_set": "geosite-tiktok",
+                "action": "route",
                 "outbound": "🎵 TikTok"
             },
             {
@@ -508,10 +516,12 @@
                     "geoip-netflix",
                     "geosite-netflix"
                 ],
+                "action": "route",
                 "outbound": "🎥 Netflix"
             },
             {
                 "rule_set": "geosite-microsoft",
+                "action": "route",
                 "outbound": "🪟 Microsoft"
             },
             {
@@ -519,6 +529,7 @@
                     "geosite-gfw",
                     "geosite-geolocation-!cn"
                 ],
+                "action": "route",
                 "outbound": "🚀 节点选择"
             },
             {
@@ -526,6 +537,7 @@
                     "geoip-cn",
                     "geosite-cn"
                 ],
+                "action": "route",
                 "outbound": "🎯 直连"
             }
         ],
