@@ -53,12 +53,14 @@ mkdir -p /opt/sing-box-update-and-start
 # 下载singbox升级和开始脚本
 wget -O /opt/sing-box-update-and-start/singbox-update-and-start.sh ${SINGBOX_RUNSCRIBE}
 chmod +x /opt/sing-box-update-and-start/singbox-update-and-start.sh
+echo "{}" > /opt/sing-box-update-and-start/settings.json
 # 添加计划任务每天凌晨2点运行一次
 echo "添加计划任务..."
 echo "0 2 * * * /opt/sing-box-update-and-start/singbox-update-and-start.sh" >> /etc/crontabs/root
 # 安装完成
 echo "安装完成。"
-echo "修改/opt/sing-box-update-and-start/singbox-update-and-start.sh脚本中的参数。"
+echo "在/opt/sing-box-update-and-start/settings.json文件中添加参数，"
+echo "或修改/opt/sing-box-update-and-start/singbox-update-and-start.sh脚本中的参数。"
 echo "执行一次获取配置文件，测试是否正常运行。"
 echo "建议重启一次应用所有更改并验证。"
 exit 0
