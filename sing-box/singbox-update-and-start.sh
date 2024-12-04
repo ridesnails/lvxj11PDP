@@ -187,6 +187,11 @@ get_settings
 update_app
 # 转换订阅
 convert_subscription
+# 检查sing-box服务是否在开机启动
+if [ $(rc-update -a show | grep -c "sing-box") -eq 0 ]; then
+    log "INFO" "sing-box服务未在开机启动，添加到开机启动..."
+    rc-update add sing-box default
+fi
 # 重启sing-box
 log "INFO" "重启sing-box..."
 rc-service sing-box restart
