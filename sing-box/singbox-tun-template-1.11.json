@@ -75,13 +75,15 @@
                 "rule_set": [
                     "custom-direct",
                     "geosite-ntp",
-                    "steam-cn"
+                    "category-game-accelerator-cn",
+                    "category-games@cn"
                 ],
                 "action": "route",
                 "server": "localDns"
             },
             {
                 "rule_set": [
+                    "category-games",
                     "geosite-gfw",
                     "geosite-geolocation-!cn"
                 ],
@@ -526,8 +528,8 @@
             },
             {
                 "rule_set": [
-                    "geosite-gfw",
                     "category-games",
+                    "geosite-gfw",
                     "geosite-geolocation-!cn"
                 ],
                 "action": "route",
