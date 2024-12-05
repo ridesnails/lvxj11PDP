@@ -473,7 +473,9 @@
                 "rule_set": [
                     "custom-direct",
                     "geosite-ntp",
-                    "steam-cn"
+                    "category-game-accelerator-cn",
+                    "category-games@cn"
+
                 ],
                 "action": "route",
                 "outbound": "🎯 直连"
@@ -525,6 +527,7 @@
             {
                 "rule_set": [
                     "geosite-gfw",
+                    "category-games",
                     "geosite-geolocation-!cn"
                 ],
                 "action": "route",
@@ -653,13 +656,6 @@
                 "download_detour": "🎯 直连"
             },
             {
-                "tag": "steam-cn",
-                "type": "remote",
-                "format": "binary",
-                "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/steam%40cn.srs",
-                "download_detour": "🎯 直连"
-            },
-            {
                 "tag": "geosite-cn",
                 "type": "remote",
                 "format": "binary",
@@ -678,6 +674,27 @@
                 "type": "remote",
                 "format": "binary",
                 "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/sing/geo/geosite/category-ntp.srs",
+                "download_detour": "🎯 直连"
+            },
+            {
+                "tag": "category-games",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-games.srs",
+                "download_detour": "🎯 直连"
+            },
+            {
+                "tag": "category-games@cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-games@cn.srs",
+                "download_detour": "🎯 直连"
+            },
+            {
+                "tag": "category-game-accelerator-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-game-accelerator-cn.srs",
                 "download_detour": "🎯 直连"
             }
         ]
