@@ -58,9 +58,15 @@ fi
 
 # 复制到 /usr/bin 并覆盖
 echo "复制 sing-box 到 $TARGET_DIR"
-cp "$SING_BOX_PATH" "$TARGET_DIR/sing-box"
+mv "$SING_BOX_PATH" "$TARGET_DIR/sing-box"
+rm -rf "$EXTRACT_DIR"
+rm -rf "$DOWNLOAD_DIR"
 
 # 确保文件有执行权限
 chmod +x "$TARGET_DIR/sing-box"
 
 echo "sing-box 已成功更新到 $TARGET_DIR"
+
+# 重启服务
+rc-service sing-box restart
+echo "服务已重启"
