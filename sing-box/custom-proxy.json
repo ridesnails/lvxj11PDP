@@ -2,11 +2,6 @@
   "version": 2,
   "rules": [
     {
-      "domain": [
-        "patch.poecdn.com"
-      ]
-    },
-    {
       "domain_suffix": [
         "ipfri.com",
         "serverapi.org",
