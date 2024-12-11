@@ -89,14 +89,9 @@
                 ],
                 "action": "route",
                 "server": "proxyDns"
-            },
-            {
-                "rule_set": "geosite-cn",
-                "action": "route",
-                "server": "localDns"
             }
         ],
-        "final": "proxyDns",
+        "final": "localDns",
         "strategy": "prefer_ipv4"
     },
     "inbounds": [
