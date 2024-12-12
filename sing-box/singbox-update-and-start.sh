@@ -45,15 +45,15 @@ get_settings() {
         [ -n "${new_value}" ] && EXCLUDE_KEYWORD=${new_value}
         new_value=$(jq -r '.config_template_file // empty' "${settings_file}")
         [ -n "${new_value}" ] && CONFIG_TEMPLATE_FILE=${new_value}
-        if [ -z "$SUBSCRIBE_URL" ]; then
-            log "ERROR" "没有配置订阅地址，请检查！"
-            exit 1
-        fi
+    fi
+    if [ -z "$SUBSCRIBE_URL" ]; then
+        log "ERROR" "没有配置订阅地址，请检查！"
+        exit 1
     fi
 }
 update_app() {
     # 检查是否需要更新
-    if [ ! -f "${SCRIPT_DIR}/update.date" ] || { 
+    if [ ! -f "${SCRIPT_DIR}/update.date" ] || [ ! -d "/opt/sing-box-subscribe" ] || { 
         LAST_UPDATE=$(cat "${SCRIPT_DIR}/update.date" 2>/dev/null)
         CURRENT_TIME=$(date +%s)
         EXPIRE_TIME=$((SUBSCRIBE_EXPIRE_TIME * 24 * 60 * 60))
@@ -62,7 +62,7 @@ update_app() {
         [ "$LAST_UPDATE" -eq "$LAST_UPDATE" ] 2>/dev/null &&
         [ $((CURRENT_TIME - LAST_UPDATE)) -gt $EXPIRE_TIME ]
     }; then
-        log "INFO" "更新时间过期，开始更新..."
+        log "INFO" "需要更新或下载，开始更新..."
         rm -f ${SCRIPT_DIR}/update.date
         rm -rf /root/sing-box-subscribe
         rm -rf /opt/sing-box-subscribe
@@ -170,7 +170,7 @@ EOF
     # 检查转换结果
     if ! sing-box check -c /opt/sing-box-subscribe/config.json; then
         log "ERROR" "新配置文件检查失败，退出脚本..."
-        return
+        exit 1
     else
         log "INFO" "新配置文件通过检查..."
     fi
@@ -181,19 +181,38 @@ EOF
     log "INFO" "替换配置文件..."
     mv /opt/sing-box-subscribe/config.json /etc/sing-box/config.json
 }
-# 获取配置
-get_settings
-# 更新应用
-update_app
-# 转换订阅
-convert_subscription
 # 检查sing-box服务是否在开机启动
-if [ $(rc-update -a show | grep -c "sing-box") -eq 0 ]; then
-    log "INFO" "sing-box服务未在开机启动，添加到开机启动..."
-    rc-update add sing-box default
-fi
-# 重启sing-box
-log "INFO" "重启sing-box..."
-rc-service sing-box restart
-log "INFO" "更新启动完成！"
-exit 0
+check_startup() {
+    if [ $(rc-update -a show | grep -c "sing-box") -eq 0 ]; then
+        log "INFO" "sing-box服务未在开机启动，添加到开机启动..."
+        rc-update add sing-box default
+    fi
+}
+# 清理/etc/sing-box/box.log日志文件
+clear_log() {
+    log "INFO" "清理sing-box日志文件..."
+    # 删除日志备份文件
+    rm -f /etc/sing-box/box-bak.log
+    # 备份日志文件
+    if [ -f /etc/sing-box/box.log ]; then
+        mv /etc/sing-box/box.log /etc/sing-box/box-bak.log
+    fi
+}
+# 主函数
+main() {
+    # 获取配置
+    get_settings
+    # 更新应用
+    update_app
+    # 转换订阅
+    convert_subscription
+    # 检查sing-box服务是否在开机启动
+    check_startup
+    clear_log
+    # 重启sing-box
+    log "INFO" "重启sing-box..."
+    rc-service sing-box restart
+    log "INFO" "更新启动完成！"
+    exit 0
+}
+main
