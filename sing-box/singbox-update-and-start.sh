@@ -146,7 +146,18 @@ update_singbox() {
     # 检查sing-box是否已启动
     if ! rc-service sing-box status; then
         log "ERROR" "sing-box更新后启动失败，请检查..."
-        return 1
+        # 如果存在备份
+        if [ -f "$TARGET_DIR/sing-box.bak" ]; then
+            log "WARN" "找到备份，将恢复原版本..."
+            # 先将新版本移动到脚本目录，方便排错
+            mv "$TARGET_DIR/sing-box" "$SCRIPT_DIR/sing-box.new"
+            mv "$TARGET_DIR/sing-box.bak" "$TARGET_DIR/sing-box"
+            return
+        else
+            log "ERROR" "未找到备份，请手动恢复！"
+            exit 1
+        fi
+        return
     fi
     log "INFO" "已更新sing-box到最新版本：$NEW_VERSION"
 }
@@ -336,6 +347,22 @@ main() {
     # 重启sing-box
     log "INFO" "重启sing-box..."
     rc-service sing-box restart
+    sleep 5
+    # 检查sing-box是否已启动
+    if ! rc-service sing-box status; then
+        log "ERROR" "sing-box启动失败，请检查..."
+        # 如果存在备份
+        if [ -f "/etc/sing-box/config.json.bak" ]; then
+            log "WARN" "找到备份配置文件，将恢复原配置文件并尝试启动..."
+            # 先将新版本移动到脚本目录，方便排错
+            mv "/etc/sing-box/config.json" "$SCRIPT_DIR/config.json.new"
+            mv "/etc/sing-box/config.json.bak" "/etc/sing-box/config.json"
+            rc-service sing-box restart
+        else
+            log "ERROR" "未找到备份，请手动恢复！"
+            exit 1
+        fi
+    fi
     log "INFO" "更新启动完成！"
     exit 0
 }
