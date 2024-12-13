@@ -59,7 +59,7 @@ log() {
     esac
     if [ $level -le $LOG_LEVEL ]; then
         shift
-        local message="[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $*"
+        local message="[$(date '+%Y-%m-%d %H:%M:%S')] [$level_str] $*"
         echo "$message" | tee -a "$LOG_FILE"
     fi
 }
