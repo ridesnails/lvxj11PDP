@@ -309,7 +309,7 @@ EOF
     cp /etc/sing-box/config.json /etc/sing-box/config.json.bak
     mv /etc/sing-box/config.json /etc/sing-box/config.json.${CURRENT_DATE}
     # 替换配置文件
-    log "DEBUG" "替换配置文件..."
+    log "INFO" "替换配置文件..."
     mv /opt/sing-box-subscribe/config.json /etc/sing-box/config.json
 }
 # 检查sing-box服务是否在开机启动
