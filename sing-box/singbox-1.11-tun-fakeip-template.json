@@ -444,15 +444,6 @@
                 "action": "hijack-dns"
             },
             {
-                "protocol": "quic",
-                "action": "reject"
-            },
-            {
-                "protocol": "bittorrent",
-                "action": "route",
-                "outbound": "🎯 直连"
-            },
-            {
                 "clash_mode": "direct",
                 "action": "route",
                 "outbound": "🎯 直连"
@@ -461,6 +452,15 @@
                 "clash_mode": "global",
                 "action": "route",
                 "outbound": "GLOBAL"
+            },
+            {
+                "protocol": "bittorrent",
+                "action": "route",
+                "outbound": "🎯 直连"
+            },
+            {
+                "protocol": "quic",
+                "action": "reject"
             },
             {
                 "domain": [
