@@ -554,6 +554,11 @@
                 ],
                 "action": "route",
                 "outbound": "🎯 直连"
+            },
+            {
+                "port": 123,
+                "action": "route",
+                "outbound": "🎯 直连"
             }
         ],
         "rule_set": [
