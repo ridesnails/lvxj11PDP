@@ -21,7 +21,7 @@ USER_AGENT="clashmeta"      # 订阅UA
 EXCLUDE_KEYWORD="网站|地址|剩余|过期|时间|有效|到期|官网"      # 代理节点排除关键字
 # 配置模板文件，建议使用远程url
 # 如果模板文件使用本地文件一定保存到其他目录，不要保存到默认的模板目录。脚本会清空默认模板目录后自动拷贝副本到模板目录，以保证使用正确的配置模板。
-CONFIG_TEMPLATE_FILE="https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/sing-box/singbox-tun-template.json"
+CONFIG_TEMPLATE_FILE="https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/sing-box/singbox-1.11-tun-fakeip-template-nomirror.json"
 # 以下为sing-box github更新配置
 REPO="SagerNet/sing-box"        # GitHub 仓库名
 VERSION_PREFIX="v1.11"           # 指定主版本号
