@@ -469,6 +469,15 @@
                 "outbound": "🎯 直连"
             },
             {
+                "ip_version": 6,
+                "rule_set": [
+                    "geoip-google",
+                    "geoip-telegram",
+                    "geoip-netflix"
+                ],
+                "action": "reject"
+            },
+            {
                 "rule_set": [
                     "custom-proxy"
                 ],
