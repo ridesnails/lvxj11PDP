@@ -3,11 +3,11 @@
 # Author: lvxj11
 # Description: 订阅转换脚本自动更新和启动
 # Version: 1.0
+################################################################################################
 # 根据配置的过期时间自动更新转换脚本和sing-box。
 # 更新时会在原目录备份为.bak结尾的文件或目录。
 # 如更新后不能正常使用，请查看官方文档修改配置，或暂时回复备份。
 # 如不需要自动更新，请将SUBSCRIBE_EXPIRE_TIME设置为0。
-################################################################################################
 set -e
 SCRIPT_DIR=$(dirname "$(realpath "$0")")      # 脚本所在目录
 CURRENT_DATE=$(date '+%Y%m%d%H%M%S')      # 当前日期和时间
@@ -21,7 +21,7 @@ USER_AGENT="clashmeta"      # 订阅UA
 EXCLUDE_KEYWORD="网站|地址|剩余|过期|时间|有效|到期|官网"      # 代理节点排除关键字
 # 配置模板文件，建议使用远程url
 # 如果模板文件使用本地文件一定保存到其他目录，不要保存到默认的模板目录。脚本会清空默认模板目录后自动拷贝副本到模板目录，以保证使用正确的配置模板。
-CONFIG_TEMPLATE_FILE="https://mirror.ghproxy.com/https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/sing-box/singbox-tun-template.json"
+CONFIG_TEMPLATE_FILE="https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/sing-box/singbox-tun-template.json"
 # 以下为sing-box github更新配置
 REPO="SagerNet/sing-box"        # GitHub 仓库名
 VERSION_PREFIX="v1.11"           # 指定主版本号
@@ -101,7 +101,7 @@ update_singbox() {
     # 下载文件
     log "INFO" "下载：$FILENAME"
     # 检查下载是否成功
-    if ! curl -L -o "$DOWNLOAD_DIR/$FILENAME" "https://mirror.ghproxy.com/$ASSET_URL"; then
+    if ! curl -L -o "$DOWNLOAD_DIR/$FILENAME" "$ASSET_URL"; then
         log "WARN" "下载失败！"
         return
     fi
@@ -163,7 +163,7 @@ update_singbox() {
 }
 update_subscribe() {
     log "DEBUG" "克隆订阅转换脚本..."
-    if ! git clone https://mirror.ghproxy.com/https://github.com/Toperlock/sing-box-subscribe.git ${DOWNLOAD_DIR}/sing-box-subscribe >/dev/null 2>&1; then
+    if ! git clone https://github.com/Toperlock/sing-box-subscribe.git ${DOWNLOAD_DIR}/sing-box-subscribe >/dev/null 2>&1; then
         log "WARN" "克隆订阅转换脚本失败，请检查网络！"
         return
     fi
