@@ -48,7 +48,7 @@ if [ -f "/etc/nftables.nft" ]; then
     fi
 fi
 # 创建空/etc/nftables.nft文件
-tuch /etc/nftables.nft
+touch /etc/nftables.nft
 
 # 开启转发
 echo "设置开启转发支持..."
