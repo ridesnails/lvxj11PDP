@@ -15,6 +15,6 @@
 #### 初始状态的alpine无ssh服务，在pve虚拟机控制台执行以下命令下载初始化脚本并运行
 ```
 wget https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/sing-box/singbox-autoinit-alpine.sh
-chmod +x singbox-auto-alpine.sh
-./singbox-auto-alpine.sh
+chmod +x singbox-autoinit-alpine.sh
+./singbox-autoinit-alpine.sh
 ```
