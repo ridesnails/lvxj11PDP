@@ -123,7 +123,7 @@ update_singbox() {
     # 检查是否为新版本
     if [ -f "$TARGET_DIR/sing-box" ]; then
         CURRENT_VERSION=$(sing-box version | head -n 1 | awk '{print $3}')
-        NEW_VERSION=$("$SING_BOX_PATH version" | head -n 1 | awk '{print $3}')
+        NEW_VERSION=$("$SING_BOX_PATH" version | head -n 1 | awk '{print $3}')
         if [ "$CURRENT_VERSION" = "$NEW_VERSION" ]; then
             log "INFO" "当前版本与最新版本一致，无需更新。"
             return
