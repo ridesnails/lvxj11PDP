@@ -576,14 +576,16 @@
                 "type": "remote",
                 "format": "source",
                 "url": "https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/sing-box/custom-direct.json",
-                "download_detour": "GLOBAL"
+                "download_detour": "GLOBAL",
+                "update_interval": "10m"
             },
             {
                 "tag": "custom-proxy",
                 "type": "remote",
                 "format": "source",
                 "url": "https://raw.githubusercontent.com/lvxj11/lvxj11PDP/refs/heads/main/sing-box/custom-proxy.json",
-                "download_detour": "GLOBAL"
+                "download_detour": "GLOBAL",
+                "update_interval": "10m"
             },
             {
                 "tag": "geosite-category-ai-chat-!cn",
