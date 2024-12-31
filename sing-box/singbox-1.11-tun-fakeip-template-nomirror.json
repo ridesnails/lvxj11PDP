@@ -67,6 +67,9 @@
             },
             {
                 "rule_set": "geosite-private",
+                "source_ip_cidr": [
+                    "192.168.56.0/24"
+                ],
                 "action": "route",
                 "server": "primaryRoute"
             },
@@ -452,6 +455,14 @@
                 "clash_mode": "global",
                 "action": "route",
                 "outbound": "GLOBAL"
+            },
+            {
+                "wifi_ssid": [
+                    "Renchao",
+                    "Renchao_5G"
+                ],
+                "action": "route",
+                "outbound": "🎯 直连"
             },
             {
                 "protocol": "bittorrent",
