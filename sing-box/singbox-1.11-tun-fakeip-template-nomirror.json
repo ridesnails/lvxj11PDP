@@ -457,14 +457,6 @@
                 "outbound": "GLOBAL"
             },
             {
-                "wifi_ssid": [
-                    "Renchao",
-                    "Renchao_5G"
-                ],
-                "action": "route",
-                "outbound": "🎯 直连"
-            },
-            {
                 "protocol": "bittorrent",
                 "action": "route",
                 "outbound": "🎯 直连"
