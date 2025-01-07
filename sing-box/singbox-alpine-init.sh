@@ -82,10 +82,6 @@ rc-update add crond default
 # 安装singbox
 apk add sing-box --update-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
 rc-update add sing-box default
-# 如果目录不存在建立/opt/sing-box-helper文件夹
-if [ ! -d "/opt/sing-box-helper" ]; then
-    mkdir -p /opt/sing-box-helper
-fi
 
 echo "安装完成。"
 echo "建议重启一次应用所有更改并验证。"
