@@ -8,11 +8,20 @@
         "chtsite.com",
         "azurefd.us",
         "applovin.com",
-        "googleapis.cn",
         "qichiyu.com",
         "metacubex.one",
         "truenas.com",
-        "ixsystems.com"
+        "ixsystems.com",
+//google play 规则
+        "services.googleapis.cn",
+        "googleapis.com",
+        "googleapis.cn",
+        "google.com",
+        "gstatic.com",
+        "googlevideo.com",
+       "google-analytics.com",
+       "googleusercontent.com",
+       "xn--ngstr-lra8j.com"
       ],
       "domain_keyword": [
         "surfcloud"
