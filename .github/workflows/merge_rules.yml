@@ -59,8 +59,8 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           mkdir -p release
-          mv combined.mrs release/
-          git add release/combined.mrs
+          mv combined.mrs release/gfw-and-!cn.mrs
+          git add release/gfw-and-!cn.mrs
           # 只有文件内容变化时才提交
           if [ -n "$(git status --porcelain)" ]; then
             git commit -m "Update rules: $(date +'%Y-%m-%d')"
