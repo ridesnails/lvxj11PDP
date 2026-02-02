@@ -14,12 +14,26 @@ jobs:
 
       - name: Download Mihomo
         run: |
-          # 获取最新版本 Mihomo (MetaCubeX)
+          # 1. 从 API 获取最新的 tag 名
           tag=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | jq -r .tag_name)
-          curl -L -o mihomo.tar.gz https://github.com/MetaCubeX/mihomo/releases/download/${tag}/mihomo-linux-amd64-${tag}.tar.gz
+          echo "Latest version: $tag"
+          
+          # 2. 定位包含 linux-amd64 且以 .tar.gz 结尾的下载链接
+          # 这样可以自动过滤掉兼容性包或 sha256 文件
+          download_url=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | \
+            jq -r '.assets[] | select(.name | contains("linux-amd64") and endswith(".tar.gz")) | .browser_download_url' | head -n 1)
+          
+          echo "Downloading from: $download_url"
+          
+          # 3. 使用 -L 跟随重定向下载
+          curl -L -o mihomo.tar.gz "$download_url"
+          
+          # 4. 解压并重命名
+          # 注意：Mihomo 的压缩包内通常直接是二进制文件，有时带版本号
           tar -xzf mihomo.tar.gz
-          mv mihomo-linux-amd64 mihomo
-          chmod +x mihomo
+          # 找到解压出来的二进制文件（通常叫 mihomo-linux-amd64-xxx）并统一命名
+          find . -name "mihomo-linux-amd64*" -type f -exec mv {} ./mihomo \;
+          chmod +x ./mihomo
 
       - name: Fetch and Merge Rules
         run: |
