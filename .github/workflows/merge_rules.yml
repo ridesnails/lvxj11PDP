@@ -2,8 +2,8 @@ name: Merge and Convert Rules
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 每天 UTC 0点自动执行
-  workflow_dispatch:   # 允许手动触发
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,58 +14,43 @@ jobs:
 
       - name: Download Mihomo
         run: |
-          # 1. 从 API 获取最新的 tag 名
-          tag=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | jq -r .tag_name)
-          echo "Latest version: $tag"
+          # 直接使用官方固定的最新版下载地址，避免解析 JSON 出错
+          URL="https://github.com/MetaCubeX/mihomo/releases/download/Prerelease-Alpha/mihomo-linux-amd64-alpha-94e8a86.tar.gz"
+          # 如果你追求稳定版，可以使用下面这个动态拼接逻辑
+          TAG=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | jq -r .tag_name)
+          DOWNLOAD_URL="https://github.com/MetaCubeX/mihomo/releases/download/${TAG}/mihomo-linux-amd64-${TAG}.tar.gz"
           
-          # 2. 定位包含 linux-amd64 且以 .tar.gz 结尾的下载链接
-          # 这样可以自动过滤掉兼容性包或 sha256 文件
-          download_url=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | \
-            jq -r '.assets[] | select(.name | contains("linux-amd64") and endswith(".tar.gz")) | .browser_download_url' | head -n 1)
+          echo "Attempting to download: $DOWNLOAD_URL"
+          curl -L -o mihomo.tar.gz "$DOWNLOAD_URL"
           
-          echo "Downloading from: $download_url"
-          
-          # 3. 使用 -L 跟随重定向下载
-          curl -L -o mihomo.tar.gz "$download_url"
-          
-          # 4. 解压并重命名
-          # 注意：Mihomo 的压缩包内通常直接是二进制文件，有时带版本号
+          # 解压
           tar -xzf mihomo.tar.gz
-          # 找到解压出来的二进制文件（通常叫 mihomo-linux-amd64-xxx）并统一命名
-          find . -name "mihomo-linux-amd64*" -type f -exec mv {} ./mihomo \;
-          chmod +x ./mihomo
+          # 兼容处理：将解压出来的任何以 mihomo-linux-amd64 开头的文件改名为 mihomo
+          mv mihomo-linux-amd64* mihomo || mv mihomo-* mihomo || true
+          chmod +x mihomo
 
       - name: Fetch and Merge Rules
         run: |
-          # 定义下载地址 (使用 Raw 链接)
-          URL_GFW="https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/gfw.list"
-          URL_NOT_CN="https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.list"
+          # 使用 Raw 链接下载
+          curl -sL "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/gfw.list" -o gfw.txt
+          curl -sL "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.list" -o not_cn.txt
 
-          # 下载
-          curl -sL $URL_GFW -o gfw.txt
-          curl -sL $URL_NOT_CN -o not_cn.txt
+          # 统计原始行数
+          COUNT_GFW=$(grep -v '^#' gfw.txt | grep -v '^$' | wc -l)
+          COUNT_NOT_CN=$(grep -v '^#' not_cn.txt | grep -v '^$' | wc -l)
 
-          # 统计行数
-          COUNT_GFW=$(wc -l < gfw.txt)
-          COUNT_NOT_CN=$(wc -l < not_cn.txt)
-
-          # 合并、去重、删除空行和注释
-          cat gfw.txt not_cn.txt | sed '/^#/d; /^$/d' | sort -u > combined.txt
-          
-          COUNT_TOTAL_RAW=$((COUNT_GFW + COUNT_NOT_CN))
+          # 合并并去重
+          cat gfw.txt not_cn.txt | grep -v '^#' | grep -v '^$' | sort -u > combined.txt
           COUNT_MERGED=$(wc -l < combined.txt)
 
-          # 输出日志
-          echo "### Rule Processing Log ###"
-          echo "GFW List count: $COUNT_GFW"
-          echo "Geolocation-!cn count: $COUNT_NOT_CN"
-          echo "Total raw count: $COUNT_TOTAL_RAW"
-          echo "Unique merged count: $COUNT_MERGED"
-          echo "###########################"
+          echo "### LOG ###"
+          echo "GFW count: $COUNT_GFW"
+          echo "Not-CN count: $COUNT_NOT_CN"
+          echo "Merged unique count: $COUNT_MERGED"
+          echo "###########"
 
       - name: Convert to MRS
         run: |
-          # 转换为 mrs 格式 (behavior 为 domain)
           ./mihomo convert-ruleset domain text combined.txt combined.mrs
 
       - name: Push to Repository
@@ -75,5 +60,4 @@ jobs:
           mkdir -p release
           mv combined.mrs release/
           git add release/combined.mrs
-          # 只有当文件发生变化时才提交
           git diff --quiet && git diff --staged --quiet || (git commit -m "Update rules: $(date +'%Y-%m-%d')" && git push)
