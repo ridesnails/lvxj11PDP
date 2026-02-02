@@ -1,0 +1,65 @@
+name: Merge and Convert Rules
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 每天 UTC 0点自动执行
+  workflow_dispatch:   # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Mihomo
+        run: |
+          # 获取最新版本 Mihomo (MetaCubeX)
+          tag=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | jq -r .tag_name)
+          curl -L -o mihomo.tar.gz https://github.com/MetaCubeX/mihomo/releases/download/${tag}/mihomo-linux-amd64-${tag}.tar.gz
+          tar -xzf mihomo.tar.gz
+          mv mihomo-linux-amd64 mihomo
+          chmod +x mihomo
+
+      - name: Fetch and Merge Rules
+        run: |
+          # 定义下载地址 (使用 Raw 链接)
+          URL_GFW="https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/gfw.list"
+          URL_NOT_CN="https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.list"
+
+          # 下载
+          curl -sL $URL_GFW -o gfw.txt
+          curl -sL $URL_NOT_CN -o not_cn.txt
+
+          # 统计行数
+          COUNT_GFW=$(wc -l < gfw.txt)
+          COUNT_NOT_CN=$(wc -l < not_cn.txt)
+
+          # 合并、去重、删除空行和注释
+          cat gfw.txt not_cn.txt | sed '/^#/d; /^$/d' | sort -u > combined.txt
+          
+          COUNT_TOTAL_RAW=$((COUNT_GFW + COUNT_NOT_CN))
+          COUNT_MERGED=$(wc -l < combined.txt)
+
+          # 输出日志
+          echo "### Rule Processing Log ###"
+          echo "GFW List count: $COUNT_GFW"
+          echo "Geolocation-!cn count: $COUNT_NOT_CN"
+          echo "Total raw count: $COUNT_TOTAL_RAW"
+          echo "Unique merged count: $COUNT_MERGED"
+          echo "###########################"
+
+      - name: Convert to MRS
+        run: |
+          # 转换为 mrs 格式 (behavior 为 domain)
+          ./mihomo convert-ruleset domain text combined.txt combined.mrs
+
+      - name: Push to Repository
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          mkdir -p release
+          mv combined.mrs release/
+          git add release/combined.mrs
+          # 只有当文件发生变化时才提交
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update rules: $(date +'%Y-%m-%d')" && git push)
