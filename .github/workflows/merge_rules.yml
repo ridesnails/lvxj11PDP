@@ -14,43 +14,44 @@ jobs:
 
       - name: Download Mihomo
         run: |
-          # 直接使用官方固定的最新版下载地址，避免解析 JSON 出错
-          URL="https://github.com/MetaCubeX/mihomo/releases/download/Prerelease-Alpha/mihomo-linux-amd64-alpha-94e8a86.tar.gz"
-          # 如果你追求稳定版，可以使用下面这个动态拼接逻辑
+          # 1. 获取最新 tag
           TAG=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | jq -r .tag_name)
-          DOWNLOAD_URL="https://github.com/MetaCubeX/mihomo/releases/download/${TAG}/mihomo-linux-amd64-${TAG}.tar.gz"
+          echo "Latest version: $TAG"
           
-          echo "Attempting to download: $DOWNLOAD_URL"
-          curl -L -o mihomo.tar.gz "$DOWNLOAD_URL"
+          # 2. 拼接下载链接 (使用 amd64-v3 架构)
+          # 注意：此文件是 .gz 格式
+          DOWNLOAD_URL="https://github.com/MetaCubeX/mihomo/releases/download/${TAG}/mihomo-linux-amd64-v3-${TAG}.gz"
+          echo "Downloading: $DOWNLOAD_URL"
           
-          # 解压
-          tar -xzf mihomo.tar.gz
-          # 兼容处理：将解压出来的任何以 mihomo-linux-amd64 开头的文件改名为 mihomo
-          mv mihomo-linux-amd64* mihomo || mv mihomo-* mihomo || true
+          # 3. 下载并解压
+          curl -L -o mihomo.gz "$DOWNLOAD_URL"
+          gunzip -c mihomo.gz > mihomo
           chmod +x mihomo
 
       - name: Fetch and Merge Rules
         run: |
-          # 使用 Raw 链接下载
+          # 下载原始列表
           curl -sL "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/gfw.list" -o gfw.txt
           curl -sL "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.list" -o not_cn.txt
 
-          # 统计原始行数
-          COUNT_GFW=$(grep -v '^#' gfw.txt | grep -v '^$' | wc -l)
-          COUNT_NOT_CN=$(grep -v '^#' not_cn.txt | grep -v '^$' | wc -l)
+          # 统计有效规则条数 (剔除注释和空行)
+          COUNT_GFW=$(grep -vE '^#|^$' gfw.txt | wc -l)
+          COUNT_NOT_CN=$(grep -vE '^#|^$' not_cn.txt | wc -l)
 
-          # 合并并去重
-          cat gfw.txt not_cn.txt | grep -v '^#' | grep -v '^$' | sort -u > combined.txt
+          # 合并、去重
+          cat gfw.txt not_cn.txt | grep -vE '^#|^$' | sort -u > combined.txt
           COUNT_MERGED=$(wc -l < combined.txt)
 
-          echo "### LOG ###"
-          echo "GFW count: $COUNT_GFW"
-          echo "Not-CN count: $COUNT_NOT_CN"
-          echo "Merged unique count: $COUNT_MERGED"
-          echo "###########"
+          echo "### RULE PROCESSING LOG ###"
+          echo "GFW有效规则数: $COUNT_GFW"
+          echo "Geolocation-!cn有效规则数: $COUNT_NOT_CN"
+          echo "合并后总条数 (未去重): $((COUNT_GFW + COUNT_NOT_CN))"
+          echo "去重后最终条数: $COUNT_MERGED"
+          echo "###########################"
 
       - name: Convert to MRS
         run: |
+          # 使用刚下载的 mihomo 二进制文件进行转换
           ./mihomo convert-ruleset domain text combined.txt combined.mrs
 
       - name: Push to Repository
@@ -60,4 +61,10 @@ jobs:
           mkdir -p release
           mv combined.mrs release/
           git add release/combined.mrs
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update rules: $(date +'%Y-%m-%d')" && git push)
+          # 只有文件内容变化时才提交
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Update rules: $(date +'%Y-%m-%d')"
+            git push
+          else
+            echo "No changes to commit"
+          fi
