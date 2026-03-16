@@ -210,19 +210,12 @@ bind-address: "*"
 mode: rule
 log-level: info
 external-controller: 0.0.0.0:9090
-external-ui: ui
-external-ui-name: Zashboard
-external-ui-url: https://gh-proxy.com/https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip
 
 dns:
   enable: true
-  ipv6: true
   listen: 0.0.0.0:53
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
   nameserver:
     - 223.5.5.5
-    - 119.29.29.29
 
 proxies: []
 proxy-groups:
@@ -232,7 +225,6 @@ proxy-groups:
       - DIRECT
 
 rules:
-  - GEOIP,CN,DIRECT
   - MATCH,Proxy
 EOF
 fi
