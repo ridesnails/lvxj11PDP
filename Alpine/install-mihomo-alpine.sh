@@ -56,7 +56,7 @@ log "检测到系统架构: $ARCH (mihomo: $MIHOMO_ARCH)"
 log "更新系统并安装工具..."
 apk update
 apk upgrade
-apk add curl iproute2 nftables openssh net-tools tzdata jq ca-certificates wget tcpdump htop iftop
+apk add curl iproute2 nftables openssh net-tools tzdata jq ca-certificates wget tcpdump htop iftop qemu-guest-agent
 
 # 设置时区
 log "设置时区..."
@@ -283,10 +283,12 @@ rc-update add nftables boot
 rc-update add sshd default
 rc-update add mihomo default
 rc-update add crond default
+rc-update add qemu-guest-agent default
 
 log "启动服务..."
 rc-service nftables restart
 rc-service sshd restart
+rc-service qemu-guest-agent start
 rc-service mihomo start
 
 sleep 2
