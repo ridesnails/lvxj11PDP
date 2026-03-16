@@ -1,0 +1,32 @@
+#!/bin/sh
+set -e
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
+
+# 动态检测网卡
+PRIMARY_IFACE=$(ip -o link show | awk -F': ' '{print $2}' | grep -v '^lo$' | head -n 1)
+if [ -z "$PRIMARY_IFACE" ]; then
+    log "错误: 无法检测到网卡"
+    exit 1
+fi
+
+# 提取以 2 开头的直连网段 (Prefix)
+NETWORK=$(ip -6 route show dev "$PRIMARY_IFACE" | grep '^2' | awk '{print $1}' | head -n1)
+
+if [ -n "$NETWORK" ]; then
+    # 检查集合（如果不存在）
+    if ! nft list set inet filter local_ipv6_list > /dev/null 2>&1; then
+        log "没找到 local_ipv6_list 集合..."
+        exit 1
+    fi
+    
+    # 注入网段
+    log "添加 IPv6 网段: $NETWORK"
+    nft "add element inet filter local_ipv6_list { $NETWORK timeout 2h }"
+else
+    log "未找到以 2 开头的 IPv6 直连网段"
+fi
+
+exit 0
