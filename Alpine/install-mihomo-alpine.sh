@@ -19,38 +19,38 @@ RUNNING_KERNEL=$(uname -r)
 INSTALLED_KERNEL=""
 for pkg in linux-lts linux-virt; do
     INSTALLED_KERNEL=$(apk list "$pkg" 2>/dev/null | grep "\[installed\]" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
-    if [ -n "$INSTALLED_KERNEL" ]; then
+    if [ -n "${INSTALLED_KERNEL}" ]; then
         break
     fi
 done
 
-if [ -n "$INSTALLED_KERNEL" ]; then
-    if ! echo "$RUNNING_KERNEL" | grep -q "^$INSTALLED_KERNEL"; then
-        log "警告: 运行中的内核版本 ($RUNNING_KERNEL) 与已安装的内核版本 ($INSTALLED_KERNEL) 不匹配"
+if [ -n "${INSTALLED_KERNEL}" ]; then
+    if ! echo "${RUNNING_KERNEL}" | grep -q "^${INSTALLED_KERNEL}"; then
+        log "警告: 运行中的内核版本 (${RUNNING_KERNEL}) 与已安装的内核版本 (${INSTALLED_KERNEL}) 不匹配"
         log "请重启系统后再运行此脚本"
         exit 1
     fi
 fi
-log "内核版本检查通过: $RUNNING_KERNEL"
+log "内核版本检查通过: ${RUNNING_KERNEL}"
 
 # 检测主网卡名称
 log "检测网卡名称..."
 PRIMARY_IFACE=$(ip -o link show | awk -F': ' '{print $2}' | grep -v '^lo$' | head -n 1)
-if [ -z "$PRIMARY_IFACE" ]; then
+if [ -z "${PRIMARY_IFACE}" ]; then
     log "错误: 无法检测到网卡"
     exit 1
 fi
-log "检测到主网卡: $PRIMARY_IFACE"
+log "检测到主网卡: ${PRIMARY_IFACE}"
 
 # 获取系统架构
 ARCH=$(uname -m)
-case "$ARCH" in
+case "${ARCH}" in
     x86_64) MIHOMO_ARCH="amd64" ;;
     aarch64|arm64) MIHOMO_ARCH="arm64" ;;
     armv7l|arm) MIHOMO_ARCH="armv7" ;;
-    *) log "不支持的架构: $ARCH"; exit 1 ;;
+    *) log "不支持的架构: ${ARCH}"; exit 1 ;;
 esac
-log "检测到系统架构: $ARCH (mihomo: $MIHOMO_ARCH)"
+log "检测到系统架构: ${ARCH} (mihomo: ${MIHOMO_ARCH})"
 
 # 更新系统并安装工具
 log "更新系统并安装工具..."
@@ -81,7 +81,7 @@ log "TUN模块已加载"
 log "配置nftables防火墙..."
 if [ -f "/etc/nftables.nft" ]; then
     TIMESTAMP=$(date '+%Y%m%d%H%M%S')
-    mv /etc/nftables.nft "/etc/nftables.nft.bak.$TIMESTAMP"
+    mv /etc/nftables.nft "/etc/nftables.nft.bak.${TIMESTAMP}"
 fi
 
 cat <<EOF > /etc/nftables.nft
@@ -136,7 +136,7 @@ cat <<EOF > /etc/sysctl.d/99-network-gateway.conf
 net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
 net.ipv6.conf.all.accept_ra = 2
-net.ipv6.conf.$PRIMARY_IFACE.accept_ra = 2
+net.ipv6.conf.${PRIMARY_IFACE}.accept_ra = 2
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
 net.core.rmem_max = 16777216
@@ -153,41 +153,40 @@ sysctl -p /etc/sysctl.d/99-network-gateway.conf
 # 获取mihomo最新版本
 log "获取mihomo最新版本..."
 GITHUB_API_URL="https://api.github.com/repos/MetaCubeX/mihomo/releases/latest"
-RELEASE_INFO=$(wget -qO- "$GITHUB_API_URL")
-VERSION=$(echo "$RELEASE_INFO" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+RELEASE_INFO=$(wget -qO- "${GITHUB_API_URL}")
+VERSION=$(echo "${RELEASE_INFO}" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
 
-if [ -z "$VERSION" ]; then
+if [ -z "${VERSION}" ]; then
     log "无法获取版本信息"
     exit 1
 fi
-log "最新版本: $VERSION"
+log "最新版本: ${VERSION}"
 
 # 检测CPU指令集等级（仅AMD64）
-if [ "$MIHOMO_ARCH" = "amd64" ]; then
+if [ "${MIHOMO_ARCH}" = "amd64" ]; then
     if grep -q "avx2" /proc/cpuinfo; then
-        CPU_LEVEL="v3"
+        FILE_NAME="mihomo-linux-${MIHOMO_ARCH}-v3-${VERSION}.gz"
     elif grep -q "avx" /proc/cpuinfo; then
-        CPU_LEVEL="v2"
+        FILE_NAME="mihomo-linux-${MIHOMO_ARCH}-v2-${VERSION}.gz"
     else
-        CPU_LEVEL="v1"
+        FILE_NAME="mihomo-linux-${MIHOMO_ARCH}-v1-${VERSION}.gz"
     fi
-    log "CPU指令集等级: $CPU_LEVEL"
 else
-    CPU_LEVEL="compatible"
+    FILE_NAME="mihomo-linux-${MIHOMO_ARCH}-${VERSION}.gz"
 fi
 
 # 下载mihomo
-DOWNLOAD_URL=$(echo "$RELEASE_INFO" | grep "browser_download_url" | grep "linux-$MIHOMO_ARCH-$CPU_LEVEL-$VERSION.gz" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+DOWNLOAD_URL=$(echo "${RELEASE_INFO}" | grep "browser_download_url" | grep "${FILE_NAME}" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
 
-if [ -z "$DOWNLOAD_URL" ]; then
+if [ -z "${DOWNLOAD_URL}" ]; then
     log "无法找到下载链接"
     exit 1
 fi
-log "下载链接: $DOWNLOAD_URL"
+log "下载链接: ${DOWNLOAD_URL}"
 
 log "下载mihomo..."
 cd /tmp
-wget -O mihomo.gz "$DOWNLOAD_URL"
+wget -O mihomo.gz "${DOWNLOAD_URL}"
 gunzip -c mihomo.gz > /usr/local/bin/mihomo
 chmod +x /usr/local/bin/mihomo
 rm -f mihomo.gz
