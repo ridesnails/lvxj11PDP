@@ -106,19 +106,22 @@ table inet filter {
     chain input {
         type filter hook input priority 0; policy drop;
 
-        # 1. 允许本地回环 (lo)
+        # 1. 允许本地回环
         iif "lo" accept
 
-        # 2. 允许已建立和相关的连接 (保证请求的回程包正常)
+        # 2. 允许已建立和相关的连接
         ct state established,related accept
 
-        # 3. 放行所有 ICMPv6 (涵盖了 RA, NS, NA, Ping 等所有必要协议)
+        # 3. 丢弃无效连接
+        ct state invalid drop
+
+        # 4. 放行所有 ICMPv6
         ip6 nexthdr icmpv6 accept
 
-        # 4. 允许所有本地 IPv4 私网网段
+        # 5. 允许所有本地 IPv4 私网网段
         ip saddr @local_ipv4_list accept
 
-        # 5. 允许所有本地 IPv6 私网与本地链路网段
+        # 6. 允许所有本地 IPv6 私网与本地链路网段
         ip6 saddr @local_ipv6_list accept
     }
     chain forward {

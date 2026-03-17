@@ -1,0 +1,92 @@
+# 操作系统
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 编辑器和 IDE
+.vscode/
+.idea/
+.trae
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+
+# 压缩文件
+*.zip
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.gz
+*.bz2
+*.xz
+*.rar
+*.7z
+
+# 二进制文件
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+
+# 配置文件（包含敏感信息）
+*.secret
+*.key
+*.pem
+*.crt
+credentials.yaml
+credentials.json
+.env
+.env.local
+.env.*.local
+
+# 依赖目录
+node_modules/
+vendor/
+venv/
+.env/
+
+# 构建输出
+dist/
+build/
+out/
+target/
+
+# 缓存
+.cache/
+*.cache
+
+# mihomo 相关
+mihomo
+mihomo.gz
+*.db
+*.mmdb
+*.dat
+geoip.dat
+geosite.dat
+Country.mmdb
+
+# 代理提供商数据
+proxy_providers/
+
+# 系统文件
+*.pid
+*.sock
