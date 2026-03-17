@@ -2,18 +2,19 @@
 
 ## 目录概述
 
-Alpine 目录包含了用于在 Alpine Linux 系统上部署和配置 mihomo 代理服务的相关文件和脚本。这些文件旨在帮助用户快速搭建一个功能完整的网络代理环境，支持 IPv4 和 IPv6，并提供了丰富的代理规则和配置选项。
+本目录包含用于在 Alpine Linux 系统上快速部署旁路网关和 mihomo 代理服务的脚本和配置文件。适用于 Proxmox VE 等虚拟化环境中的 Alpine 虚拟机。
 
 ## 文件说明
 
 ### 1. setup-alpine.sh
 
-**功能**：Alpine Linux 自动安装脚本
+Alpine Linux 自动安装脚本，用于无人值守安装。
 
-**主要内容**：
-- 生成 `answers.txt` 文件，包含安装配置选项
-- 执行 Alpine Linux 安装过程
-- 配置 SSH 允许 root 公钥登录
+**功能**：
+- 自动生成安装应答文件
+- 配置键盘布局、主机名、网络、时区等
+- 设置 SSH 公钥登录
+- 自动分区并安装系统
 
 **使用方法**：
 ```bash
@@ -21,23 +22,28 @@ chmod +x setup-alpine.sh
 ./setup-alpine.sh
 ```
 
+**注意**：安装完成后需要重启进入新系统。
+
 ### 2. install-mihomo-alpine.sh
 
-**功能**：Alpine 3.23 旁路网关 + mihomo 一键安装脚本
+Alpine 系统 mihomo 旁路网关一键安装脚本。
 
 **主要功能**：
-- 检查内核版本兼容性
-- 检测主网卡名称
-- 获取系统架构
-- 更新系统并安装必要工具
-- 设置时区
-- 加载 TUN 内核模块
-- 配置 nftables 防火墙
-- 配置系统网络参数
-- 下载并安装最新版本的 mihomo
-- 创建配置目录和默认配置
-- 创建 OpenRC 服务
-- 配置并启动服务
+- 系统更新和必要工具安装（含 qemu-guest-agent）
+- 自动检测系统架构和 CPU 指令集
+- 下载匹配架构的 mihomo 最新版本
+- 配置 nftables 防火墙（支持 IPv4/IPv6）
+- 配置系统网络参数（开启 IP 转发、BBR 等）
+- 创建 mihomo 配置目录和默认配置
+- 创建 OpenRC 服务并设置开机启动
+- 配置日志轮转
+
+**防火墙规则**：
+- 允许本地回环流量
+- 允许已建立连接
+- 丢弃无效连接
+- 放行所有 ICMPv6
+- 允许本地私网网段（IPv4/IPv6）
 
 **使用方法**：
 ```bash
@@ -47,12 +53,13 @@ chmod +x install-mihomo-alpine.sh
 
 ### 3. update-ipv6-set
 
-**功能**：动态更新 IPv6 网段到 nftables 防火墙规则
+动态更新 IPv6 直连网段到防火墙规则。
 
-**主要功能**：
-- 动态检测主网卡
-- 提取以 2 开头的 IPv6 直连网段
-- 将网段添加到 nftables 的 local_ipv6_list 集合中，设置 2 小时超时
+**功能**：
+- 自动检测主网卡
+- 提取以 2 开头的 IPv6 前缀（通常是公网地址）
+- 添加到 nftables 集合，设置 2 小时超时
+- 支持重复执行刷新超时时间
 
 **使用方法**：
 ```bash
@@ -60,72 +67,90 @@ chmod +x update-ipv6-set
 ./update-ipv6-set
 ```
 
+**建议**：配合 crontab 定期执行（如每 15 分钟）：
+```bash
+echo '*/15 * * * * /etc/periodic/15min/update-ipv6-set' | crontab -
+```
+
 ### 4. config.yaml
 
-**功能**：mihomo 详细配置文件
+mihomo 配置文件示例（简化版）。
 
-**主要配置项**：
-- 网络设置（允许局域网访问、绑定地址等）
-- DNS 配置（启用 IPv6、增强模式、DNS 服务器等）
-- 代理设置（直连代理）
-- 代理组配置（默认代理、ChatGPT、TikTok、直连、漏网之鱼等）
-- 代理提供商配置
-- 规则配置（禁用 QUIC、域名规则、IP 规则等）
-- 规则提供商配置（AI、TikTok、Google、GitHub、YouTube、Telegram、GFW 等）
-- TUN 配置（启用 TUN、设备设置、路由配置等）
-- Sniffer 配置（启用流量嗅探）
-- 其他高级设置（认证、Geo 数据更新等）
-
-## 系统要求
-
-- Alpine Linux 3.23 或更高版本
-- 支持 TUN 内核模块
-- 网络连接
-- Root 权限
+**特点**：
+- 仅包含最基本配置
+- 混合端口 7890
+- 外部控制器 9090 端口
+- 启用 DNS
+- 空代理列表（需自行添加）
 
 ## 安装流程
 
-1. 首先运行 `setup-alpine.sh` 安装 Alpine Linux 系统
-2. 系统安装完成后，运行 `install-mihomo-alpine.sh` 安装并配置 mihomo 代理服务
-3. 根据需要运行 `update-ipv6-set` 更新 IPv6 网段规则
-4. 根据实际网络环境修改 `config.yaml` 配置文件
+1. **安装 Alpine 系统**
+   ```bash
+   ./setup-alpine.sh
+   # 安装完成后重启
+   reboot
+   ```
 
-## 管理命令
+2. **安装 mihomo 服务**
+   ```bash
+   ./install-mihomo-alpine.sh
+   ```
 
-- 启动 mihomo 服务：`rc-service mihomo start`
-- 停止 mihomo 服务：`rc-service mihomo stop`
-- 重启 mihomo 服务：`rc-service mihomo restart`
-- 查看 mihomo 服务状态：`rc-service mihomo status`
+3. **配置 IPv6 动态更新**（可选）
+   ```bash
+   mkdir -p /etc/periodic/15min
+   cp update-ipv6-set /etc/periodic/15min/
+   chmod +x /etc/periodic/15min/update-ipv6-set
+   ```
 
-## Web UI 访问
+4. **配置 mihomo**
+   - 编辑 `/etc/mihomo/config.yaml`
+   - 添加代理服务器
+   - 重启服务：`rc-service mihomo restart`
 
-安装完成后，可以通过以下地址访问 mihomo 的 Web 管理界面：
+## 服务管理
 
+```bash
+# 查看服务状态
+rc-service mihomo status
+rc-service nftables status
+rc-service qemu-guest-agent status
+
+# 启动/停止/重启
+rc-service mihomo start
+rc-service mihomo stop
+rc-service mihomo restart
+
+# 查看日志
+tail -f /var/log/mihomo/mihomo.log
 ```
-http://<服务器IP>:9090/ui
+
+## Web 面板
+
+安装完成后访问：
+```
+http://<服务器IP>:9090
 ```
 
-默认认证信息：
-- 用户名：lvxj11
-- 密码：0129
+## 系统要求
 
-## 注意事项
-
-1. 安装前请确保系统满足要求
-2. 安装过程中需要网络连接以下载必要的软件包和 mihomo 二进制文件
-3. 请根据实际网络环境修改 `config.yaml` 中的代理配置
-4. 如需添加自定义代理，请在 `config.yaml` 的 `proxies` 部分添加
-5. 定期运行 `update-ipv6-set` 脚本更新 IPv6 网段规则
+- Alpine Linux 3.23+
+- 支持 TUN 的内核
+- Root 权限
+- 网络连接
 
 ## 故障排查
 
-- 查看 mihomo 日志：`tail -f /var/log/mihomo/mihomo.log`
-- 检查网络连接：`ping -c 4 google.com`
-- 检查 TUN 模块：`lsmod | grep tun`
-- 检查 nftables 规则：`nft list ruleset`
+| 问题 | 排查命令 |
+|------|----------|
+| mihomo 无法启动 | `tail /var/log/mihomo/mihomo.log` |
+| 防火墙规则 | `nft list ruleset` |
+| TUN 模块 | `lsmod \| grep tun` |
+| 网络连接 | `ping -c 4 223.5.5.5` |
+| IPv6 网段 | `ip -6 route show` |
 
 ## 相关链接
 
-- [mihomo 项目](https://github.com/MetaCubeX/mihomo)
-- [Alpine Linux 官方网站](https://alpinelinux.org/)
-- [MetaCubeX 规则数据](https://github.com/MetaCubeX/meta-rules-dat)
+- [mihomo](https://github.com/MetaCubeX/mihomo)
+- [Alpine Linux](https://alpinelinux.org/)
