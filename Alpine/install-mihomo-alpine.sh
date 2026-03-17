@@ -8,7 +8,7 @@ set -e
 
 # 脚本信息
 SCRIPT_NAME="install-mihomo-alpine.sh"
-SCRIPT_VERSION="1.0.2"
+SCRIPT_VERSION="1.1.0"
 
 # 系统配置变量
 TIMEZONE="Asia/Shanghai"
@@ -16,42 +16,10 @@ LOCALE_TIMEZONE="/usr/share/zoneinfo/Asia/Shanghai"
 
 # 网络配置变量
 NETWORK_IFACE=""
-NETWORK_TX_QUEUE_LEN=5000
-NETWORK_RPS_SOCK_FLOW_ENTRIES=32768
-NETWORK_NETDEV_MAX_BACKLOG=5000
-
-# 系统资源限制
-MAX_FILE_DESCRIPTORS=1048576
-MAX_CONNTRACK=1048576
-CONNTRACK_TIMEOUT=3600
-
-# IPv6 连接跟踪配置
-CONNTRACK_FRAG6_TIMEOUT=60
-CONNTRACK_FRAG6_HIGH_THRESH=4194304
-
-# 提高内核处理数据包的“额度”，减少 CPU 中断频率
-NETWORK_NETDEV_BUDGET=600
-NETWORK_NETDEV_BUDGET_USECS=8000
-
-# ARP 缓存配置
-NEIGH_GC_STALE_TIME=120
-NEIGH_GC_THRESH1=1024
-NEIGH_GC_THRESH2=4096
-NEIGH_GC_THRESH3=8192
-
-# TCP 超时配置
-TCP_FIN_TIMEOUT=30
-TCP_MAX_SYN_BACKLOG=4096
 
 # mihomo 配置
 MIHOMO_CONFIG_DIR="/etc/mihomo"
-MIHOMO_LOG_DIR="/var/log/mihomo"
 MIHOMO_BIN_PATH="/usr/local/bin/mihomo"
-MIHOMO_PID_FILE="/run/mihomo.pid"
-MIHOMO_LOG_FILE="/var/log/mihomo/mihomo.log"
-MIHOMO_PORT=7890
-MIHOMO_UI_PORT=9090
-MIHOMO_DNS_PORT=53
 
 # GitHub API 配置
 GITHUB_API_URL="https://api.github.com/repos/MetaCubeX/mihomo/releases/latest"
@@ -73,7 +41,6 @@ SERVICES_DEFAULT="sshd mihomo crond qemu-guest-agent"
 ASSETS_DIR="./assets"
 NFTABLES_CONFIG="/etc/nftables.nft"
 SYSCTL_CONFIG="/etc/sysctl.d/99-network-gateway.conf"
-SYSCTL_MULTIQUEUE_CONFIG="/etc/sysctl.d/99-network-multiqueue.conf"
 IF_UP_DIR="/etc/network/if-up.d"
 MIHOMO_SERVICE="/etc/init.d/mihomo"
 LOGROTATE_CONFIG="/etc/logrotate.d/mihomo"
@@ -157,31 +124,6 @@ load_kernel_modules() {
     done
 }
 
-check_network_multiqueue() {
-    log "检查网卡多队列支持..."
-    local queue_count=""
-    
-    if [ -d "/sys/class/net/${NETWORK_IFACE}/queues" ]; then
-        queue_count=$(ls -d /sys/class/net/${NETWORK_IFACE}/queues/rx-* 2>/dev/null | wc -l)
-        if [ "${queue_count}" -gt 1 ]; then
-            log "检测到 ${queue_count} 个接收队列，开启多队列支持..."
-            if [ ! -f "${SYSCTL_MULTIQUEUE_CONFIG}" ]; then
-                cat <<EOF > "${SYSCTL_MULTIQUEUE_CONFIG}"
-# 开启网卡多队列支持
-net.core.rps_sock_flow_entries = ${NETWORK_RPS_SOCK_FLOW_ENTRIES}
-# 增加网络设备接收队列长度
-net.core.netdev_max_backlog = ${NETWORK_NETDEV_MAX_BACKLOG}
-EOF
-            fi
-            log "网卡多队列配置完成"
-        else
-            log "该网卡不支持多队列或只有一个队列"
-        fi
-    else
-        log "无法检查网卡队列信息"
-    fi
-}
-
 # ============================================================================
 # 网络配置函数
 # ============================================================================
@@ -218,64 +160,56 @@ configure_nftables() {
 configure_sysctl() {
     log "配置系统参数..."
     cat <<EOF > "${SYSCTL_CONFIG}"
-# --- 基础转发与核心设置 ---
+# --- 基础 ---
 net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
-# 确保即使开启转发也能接受 IPv6 路由通告
+
+# IPv6 RA（旁路网关关键）
 net.ipv6.conf.all.accept_ra = 2
 net.ipv6.conf.default.accept_ra = 2
 net.ipv6.conf.${NETWORK_IFACE}.accept_ra = 2
 
-# --- 旁路网关关键：禁用重定向 (强制流量过代理) ---
-# 防止网关把流量甩回给 ROS，解决掉线和绕过问题
+# --- 禁止重定向（核心） ---
 net.ipv4.conf.all.send_redirects = 0
 net.ipv4.conf.default.send_redirects = 0
 net.ipv4.conf.all.accept_redirects = 0
 net.ipv4.conf.default.accept_redirects = 0
 net.ipv4.conf.all.secure_redirects = 0
 net.ipv4.conf.default.secure_redirects = 0
-# 如果有特定网卡（如 eth0），建议显式指定
 net.ipv4.conf.${NETWORK_IFACE}.send_redirects = 0
 net.ipv4.conf.${NETWORK_IFACE}.accept_redirects = 0
 
-# --- 拥塞控制与队列优化 ---
+# --- 拥塞控制 ---
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
 net.ipv4.tcp_fastopen = 3
+net.ipv4.tcp_mtu_probing = 1
 
-# --- 连接跟踪与并发优化 ---
-# 提高最大文件句柄，防止并发过高时报错
-fs.nr_open = ${MAX_FILE_DESCRIPTORS}
-fs.file-max = ${MAX_FILE_DESCRIPTORS}
+# --- 连接跟踪（重要！） ---
+net.netfilter.nf_conntrack_max = 65535
+net.netfilter.nf_conntrack_tcp_timeout_established = 3600
 
-# 调大内核连接跟踪表（旁路网关处理全家流量时很重要）
-net.netfilter.nf_conntrack_max = ${MAX_CONNTRACK}
-net.netfilter.nf_conntrack_tcp_timeout_established = ${CONNTRACK_TIMEOUT}
+# --- 网络队列 ---
+net.core.netdev_max_backlog = 4096
+net.core.netdev_budget = 600
+net.core.netdev_budget_usecs = 8000
 
-# IPv6 连接跟踪
-net.netfilter.nf_conntrack_frag6_timeout = ${CONNTRACK_FRAG6_TIMEOUT}
-net.netfilter.nf_conntrack_frag6_high_thresh = ${CONNTRACK_FRAG6_HIGH_THRESH}
+# --- 缓冲区 ---
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.ipv4.tcp_rmem = 4096 131072 16777216
+net.ipv4.tcp_wmem = 4096 65536 16777216
 
-# --- 网络安全与稳定性 ---
-# 允许 ICMP 流量
+# --- 安全 ---
+net.ipv4.tcp_syncookies = 1
 net.ipv4.icmp_echo_ignore_broadcasts = 1
 net.ipv4.icmp_ignore_bogus_error_responses = 1
 
-# 提高内核处理数据包的“额度”，减少 CPU 中断频率
-net.core.netdev_budget = ${NETWORK_NETDEV_BUDGET}
-net.core.netdev_budget_usecs = ${NETWORK_NETDEV_BUDGET_USECS}
-
-# 防止 ARP 缓存溢出
-net.ipv4.neigh.default.gc_stale_time = ${NEIGH_GC_STALE_TIME}
-net.ipv4.neigh.default.gc_thresh1 = ${NEIGH_GC_THRESH1}
-net.ipv4.neigh.default.gc_thresh2 = ${NEIGH_GC_THRESH2}
-net.ipv4.neigh.default.gc_thresh3 = ${NEIGH_GC_THRESH3}
-# net.ipv4.tcp_max_syn_backlog = ${TCP_MAX_SYN_BACKLOG}
-net.ipv4.tcp_syncookies = 1
-# 减少处于 FIN-WAIT-2 状态的时间，快速回收端口
-net.ipv4.tcp_fin_timeout = ${TCP_FIN_TIMEOUT}
-# 开启重用
-net.ipv4.tcp_tw_reuse = 1
+# --- ARP ---
+net.ipv4.neigh.default.gc_stale_time = 120
+net.ipv4.neigh.default.gc_thresh1 = 1024
+net.ipv4.neigh.default.gc_thresh2 = 4096
+net.ipv4.neigh.default.gc_thresh3 = 8192
 EOF
     sysctl -p "${SYSCTL_CONFIG}"
 }
@@ -375,7 +309,7 @@ install_mihomo_service() {
 create_logrotate_config() {
     log "创建日志轮转配置..."
     cat <<EOF > "${LOGROTATE_CONFIG}"
-${MIHOMO_LOG_DIR}/*.log {
+/var/log/mihomo/*.log {
     daily
     rotate 7
     compress
@@ -440,7 +374,6 @@ main() {
     update_system
     set_timezone
     load_kernel_modules
-    check_network_multiqueue
     
     # 网络配置
     configure_nftables
@@ -460,7 +393,6 @@ main() {
     log "=========================================="
     log "安装完成！"
     log "配置文件: ${MIHOMO_CONFIG_DIR}/config.yaml"
-    log "Web UI: http://<服务器IP>:${MIHOMO_UI_PORT}/ui"
     log "=========================================="
     log "管理命令:"
     log "  启动: rc-service mihomo start"
