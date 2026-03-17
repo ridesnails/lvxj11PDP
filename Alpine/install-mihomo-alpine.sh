@@ -8,7 +8,7 @@ set -e
 
 # 脚本信息
 SCRIPT_NAME="install-mihomo-alpine.sh"
-SCRIPT_VERSION="1.1.0"
+SCRIPT_VERSION="1.1.1"
 
 # 系统配置变量
 TIMEZONE="Asia/Shanghai"
@@ -159,58 +159,19 @@ configure_nftables() {
 
 configure_sysctl() {
     log "配置系统参数..."
-    cat <<EOF > "${SYSCTL_CONFIG}"
-# --- 基础 ---
-net.ipv4.ip_forward = 1
-net.ipv6.conf.all.forwarding = 1
-
-# IPv6 RA（旁路网关关键）
-net.ipv6.conf.all.accept_ra = 2
-net.ipv6.conf.default.accept_ra = 2
-net.ipv6.conf.${NETWORK_IFACE}.accept_ra = 2
-
-# --- 禁止重定向（核心） ---
-net.ipv4.conf.all.send_redirects = 0
-net.ipv4.conf.default.send_redirects = 0
-net.ipv4.conf.all.accept_redirects = 0
-net.ipv4.conf.default.accept_redirects = 0
-net.ipv4.conf.all.secure_redirects = 0
-net.ipv4.conf.default.secure_redirects = 0
-net.ipv4.conf.${NETWORK_IFACE}.send_redirects = 0
-net.ipv4.conf.${NETWORK_IFACE}.accept_redirects = 0
-
-# --- 拥塞控制 ---
-net.core.default_qdisc = fq
-net.ipv4.tcp_congestion_control = bbr
-net.ipv4.tcp_fastopen = 3
-net.ipv4.tcp_mtu_probing = 1
-
-# --- 连接跟踪（重要！） ---
-net.netfilter.nf_conntrack_max = 65535
-net.netfilter.nf_conntrack_tcp_timeout_established = 3600
-
-# --- 网络队列 ---
-net.core.netdev_max_backlog = 4096
-net.core.netdev_budget = 600
-net.core.netdev_budget_usecs = 8000
-
-# --- 缓冲区 ---
-net.core.rmem_max = 16777216
-net.core.wmem_max = 16777216
-net.ipv4.tcp_rmem = 4096 131072 16777216
-net.ipv4.tcp_wmem = 4096 65536 16777216
-
-# --- 安全 ---
-net.ipv4.tcp_syncookies = 1
-net.ipv4.icmp_echo_ignore_broadcasts = 1
-net.ipv4.icmp_ignore_bogus_error_responses = 1
-
-# --- ARP ---
-net.ipv4.neigh.default.gc_stale_time = 120
-net.ipv4.neigh.default.gc_thresh1 = 1024
-net.ipv4.neigh.default.gc_thresh2 = 4096
-net.ipv4.neigh.default.gc_thresh3 = 8192
-EOF
+    if [ -f "${ASSETS_DIR}/sysctl.conf.template" ]; then
+        if [ "${NETWORK_IFACE}" != "eth0" ] && [ -n "${NETWORK_IFACE}" ]; then
+            log "检测到网卡为 ${NETWORK_IFACE}，替换配置中的网卡名称..."
+            sed "s/eth0/${NETWORK_IFACE}/g" "${ASSETS_DIR}/sysctl.conf.template" > "${SYSCTL_CONFIG}"
+        else
+            log "使用默认网卡 eth0 配置..."
+            cp "${ASSETS_DIR}/sysctl.conf.template" "${SYSCTL_CONFIG}"
+        fi
+        log "系统参数配置文件复制完成"
+    else
+        log "警告: 未找到系统参数配置模板 ${ASSETS_DIR}/sysctl.conf.template"
+        error_exit "无法配置系统参数"
+    fi
     sysctl -p "${SYSCTL_CONFIG}"
 }
 
@@ -308,17 +269,12 @@ install_mihomo_service() {
 
 create_logrotate_config() {
     log "创建日志轮转配置..."
-    cat <<EOF > "${LOGROTATE_CONFIG}"
-/var/log/mihomo/*.log {
-    daily
-    rotate 7
-    compress
-    delaycompress
-    missingok
-    notifempty
-    copytruncate
-}
-EOF
+    if [ -f "${ASSETS_DIR}/logrotate.conf.template" ]; then
+        cp "${ASSETS_DIR}/logrotate.conf.template" "${LOGROTATE_CONFIG}"
+        log "日志轮转配置文件复制完成"
+    else
+        log "警告: 未找到日志轮转配置模板 ${ASSETS_DIR}/logrotate.conf.template，跳过日志轮转配置"
+    fi
 }
 
 # ============================================================================
