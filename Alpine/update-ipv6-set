@@ -22,9 +22,31 @@ if [ -n "${NETWORK}" ]; then
         exit 1
     fi
     
-    # 注入网段
+    # 检查网段是否已存在并获取过期时间
+    ELEMENT_INFO=$(nft list set inet filter local_ipv6_list 2>/dev/null | grep "${NETWORK}" || true)
+    
+    if [ -n "${ELEMENT_INFO}" ]; then
+        # 提取过期时间（格式：expires XhYmZs）
+        EXPIRES_STR=$(echo "${ELEMENT_INFO}" | grep -oE 'expires [0-9]+h[0-9]+m[0-9]+s' || true)
+        
+        if [ -n "${EXPIRES_STR}" ]; then
+            # 解析小时数
+            HOURS=$(echo "${EXPIRES_STR}" | grep -oE '[0-9]+h' | sed 's/h//')
+            
+            # 如果过期时间小于2小时，删除并重新添加
+            if [ -n "${HOURS}" ] && [ "${HOURS}" -lt 2 ]; then
+                log "网段 ${NETWORK} 过期时间小于2小时，刷新超时..."
+                nft "delete element inet filter local_ipv6_list { ${NETWORK} }" 2>/dev/null || true
+            else
+                log "网段 ${NETWORK} 已存在，过期时间充足 (${EXPIRES_STR})"
+                exit 0
+            fi
+        fi
+    fi
+    
+    # 添加网段，设置24小时超时
     log "添加 IPv6 网段: ${NETWORK}"
-    nft "add element inet filter local_ipv6_list { ${NETWORK} timeout 2h }"
+    nft "add element inet filter local_ipv6_list { ${NETWORK} timeout 24h }"
 else
     log "未找到以 2 开头的 IPv6 直连网段"
 fi
