@@ -8,7 +8,7 @@ set -e
 
 # 脚本信息
 SCRIPT_NAME="install-mihomo-alpine.sh"
-SCRIPT_VERSION="1.0.0"
+SCRIPT_VERSION="1.0.1"
 
 # 系统配置变量
 TIMEZONE="Asia/Shanghai"
@@ -276,7 +276,7 @@ net.ipv4.tcp_max_syn_backlog = ${TCP_MAX_SYN_BACKLOG}
 net.ipv4.tcp_syncookies = 1
 # 减少处于 FIN-WAIT-2 状态的时间，快速回收端口
 net.ipv4.tcp_fin_timeout = ${TCP_FIN_TIMEOUT}
-# 开启重用，应对大量短连接
+# 开启重用
 net.ipv4.tcp_tw_reuse = 2
 EOF
     sysctl -p "${SYSCTL_CONFIG}"
@@ -342,7 +342,6 @@ download_mihomo() {
     fi
     log "下载链接: ${download_url}"
     
-    cd /tmp
     wget -O mihomo.gz "${download_url}"
     gunzip -c mihomo.gz > "${MIHOMO_BIN_PATH}"
     chmod +x "${MIHOMO_BIN_PATH}"
