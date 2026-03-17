@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# 跳过回环接口
+if [ "${IFACE}" = "lo" ]; then
+    exit 0
+fi
+
+# 等待网卡驱动和队列完全就绪
+sleep 2
+
+# 检查接口是否存在
+if [ -d "/sys/class/net/${IFACE}" ]; then
+    
+    # 1. 增大发送队列长度 (txqueuelen)
+    # 对于高带宽（如 2.5G/10G）环境，5000 是个很稳健的取值
+    ip link set "${IFACE}" txqueuelen 5000 2>/dev/null || true
+    
+    # 2. 启用硬件/软件卸载功能 (Offloading)
+    # 在 PVE VirtIO 环境下，这些选项能显著降低 CPU 占用并提升吞吐
+    for opt in rx tx sg tso gso gro lro; do
+        ethtool -K "${IFACE}" "$opt" on 2>/dev/null || true
+    done
+    
+    # 3. 针对 VirtIO 的特殊优化：结合多队列
+    ethtool -L "${IFACE}" combined "$(nproc)" 2>/dev/null || true
+
+    echo "Optimization applied to ${IFACE}: txqueuelen=5000, offloading=on, multi-queue=auto"
+fi

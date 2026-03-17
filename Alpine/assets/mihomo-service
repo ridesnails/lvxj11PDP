@@ -1,0 +1,23 @@
+#!/sbin/openrc-run
+name="mihomo"
+description="Mihomo Proxy Service"
+command="/usr/local/bin/mihomo"
+command_args="-d /etc/mihomo"
+command_background=true
+pidfile="/run/mihomo.pid"
+output_log="/var/log/mihomo/mihomo.log"
+error_log="/var/log/mihomo/mihomo.log"
+
+depend() {
+    need net
+    after firewall
+    use logger
+}
+
+start_pre() {
+    checkpath --directory --mode 0755 /run/mihomo
+    checkpath --directory --mode 0755 /var/lib/mihomo
+    checkpath --directory --mode 0755 /var/log/mihomo
+    # 设置最大文件描述符数
+    ulimit -n 1048576
+}
