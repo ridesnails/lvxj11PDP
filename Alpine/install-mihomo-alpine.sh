@@ -27,7 +27,7 @@ CONNTRACK_TIMEOUT=3600
 
 # IPv6 连接跟踪配置
 CONNTRACK_FRAG6_TIMEOUT=60
-CONNTRACK_FRAG6_HIGH_THRESH=262144
+CONNTRACK_FRAG6_HIGH_THRESH=4194304
 
 # ARP 缓存配置
 NEIGH_GC_THRESH1=1024
@@ -277,7 +277,7 @@ net.ipv4.tcp_syncookies = 1
 # 减少处于 FIN-WAIT-2 状态的时间，快速回收端口
 net.ipv4.tcp_fin_timeout = ${TCP_FIN_TIMEOUT}
 # 开启重用，应对大量短连接
-net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_tw_reuse = 2
 EOF
     sysctl -p "${SYSCTL_CONFIG}"
 }
