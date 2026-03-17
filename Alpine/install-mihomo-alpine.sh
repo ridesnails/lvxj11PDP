@@ -8,7 +8,7 @@ set -e
 
 # 脚本信息
 SCRIPT_NAME="install-mihomo-alpine.sh"
-SCRIPT_VERSION="1.0.1"
+SCRIPT_VERSION="1.0.2"
 
 # 系统配置变量
 TIMEZONE="Asia/Shanghai"
@@ -29,16 +29,15 @@ CONNTRACK_TIMEOUT=3600
 CONNTRACK_FRAG6_TIMEOUT=60
 CONNTRACK_FRAG6_HIGH_THRESH=4194304
 
+# 提高内核处理数据包的“额度”，减少 CPU 中断频率
+NETWORK_NETDEV_BUDGET=600
+NETWORK_NETDEV_BUDGET_USECS=8000
+
 # ARP 缓存配置
+NEIGH_GC_STALE_TIME=120
 NEIGH_GC_THRESH1=1024
 NEIGH_GC_THRESH2=4096
 NEIGH_GC_THRESH3=8192
-
-# TCP 缓冲区配置
-TCP_RMEM_MAX=16777216
-TCP_WMEM_MAX=16777216
-TCP_RMEM="4096 87380 16777216"
-TCP_WMEM="4096 65536 16777216"
 
 # TCP 超时配置
 TCP_FIN_TIMEOUT=30
@@ -244,12 +243,6 @@ net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
 net.ipv4.tcp_fastopen = 3
 
-# --- 缓冲区与内存优化 ---
-net.core.rmem_max = ${TCP_RMEM_MAX}
-net.core.wmem_max = ${TCP_WMEM_MAX}
-net.ipv4.tcp_rmem = ${TCP_RMEM}
-net.ipv4.tcp_wmem = ${TCP_WMEM}
-
 # --- 连接跟踪与并发优化 ---
 # 提高最大文件句柄，防止并发过高时报错
 fs.nr_open = ${MAX_FILE_DESCRIPTORS}
@@ -268,16 +261,21 @@ net.netfilter.nf_conntrack_frag6_high_thresh = ${CONNTRACK_FRAG6_HIGH_THRESH}
 net.ipv4.icmp_echo_ignore_broadcasts = 1
 net.ipv4.icmp_ignore_bogus_error_responses = 1
 
+# 提高内核处理数据包的“额度”，减少 CPU 中断频率
+net.core.netdev_budget = ${NETWORK_NETDEV_BUDGET}
+net.core.netdev_budget_usecs = ${NETWORK_NETDEV_BUDGET_USECS}
+
 # 防止 ARP 缓存溢出
+net.ipv4.neigh.default.gc_stale_time = ${NEIGH_GC_STALE_TIME}
 net.ipv4.neigh.default.gc_thresh1 = ${NEIGH_GC_THRESH1}
 net.ipv4.neigh.default.gc_thresh2 = ${NEIGH_GC_THRESH2}
 net.ipv4.neigh.default.gc_thresh3 = ${NEIGH_GC_THRESH3}
-net.ipv4.tcp_max_syn_backlog = ${TCP_MAX_SYN_BACKLOG}
+# net.ipv4.tcp_max_syn_backlog = ${TCP_MAX_SYN_BACKLOG}
 net.ipv4.tcp_syncookies = 1
 # 减少处于 FIN-WAIT-2 状态的时间，快速回收端口
 net.ipv4.tcp_fin_timeout = ${TCP_FIN_TIMEOUT}
 # 开启重用
-net.ipv4.tcp_tw_reuse = 2
+net.ipv4.tcp_tw_reuse = 1
 EOF
     sysctl -p "${SYSCTL_CONFIG}"
 }
