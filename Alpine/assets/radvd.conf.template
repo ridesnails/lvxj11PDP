@@ -1,0 +1,15 @@
+interface eth0 {                # 替换为你的 Alpine 网卡名称
+    AdvSendAdvert on;           # 启用 RA 通告
+    MinRtrAdvInterval 30;       # 最小发送间隔
+    MaxRtrAdvInterval 100;      # 最大发送间隔
+    AdvDefaultPreference high;  # 核心：将自己设为高优先级网关
+    AdvDefaultLifetime 1800;    # 告诉客户端我是默认路由
+    prefix ::/64 {              # 前缀信息：这里设为 off 主要是为了不干扰 ROS 的地址分配
+        AdvOnLink on;           # 设备认为此网段在链路上
+        AdvAutonomous off;      # 关键：设为 off，让客户端去拿 ROS 分发的地址
+        AdvRouterAddr on;       # 告诉客户端本接口有路由能力
+    };
+    RDNSS fe80::abc:123 {       # DNS替换为 Alpine 的 Link-Local 地址
+        FlushRDNSS on;
+    };
+};

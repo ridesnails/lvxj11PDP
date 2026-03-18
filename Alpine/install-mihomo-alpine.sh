@@ -8,7 +8,7 @@ set -e
 
 # 脚本信息
 SCRIPT_NAME="install-mihomo-alpine.sh"
-SCRIPT_VERSION="1.1.1"
+SCRIPT_VERSION="1.2.0"
 
 # 系统配置变量
 TIMEZONE="Asia/Shanghai"
@@ -28,20 +28,18 @@ GITHUB_API_URL="https://api.github.com/repos/MetaCubeX/mihomo/releases/latest"
 ARCH_MAP="x86_64:amd64 aarch64:arm64 armv7l:armv7 arm:armv7"
 
 # 软件包列表
-PACKAGES_BASE="curl iproute2 nftables openssh net-tools tzdata jq ca-certificates wget tcpdump htop iftop qemu-guest-agent ethtool"
+PACKAGES_BASE="curl iproute2 nftables openssh net-tools tzdata jq ca-certificates wget tcpdump htop iftop qemu-guest-agent ethtool radvd"
 
 # 内核模块列表
 KERNEL_MODULES="tun br_netfilter nf_conntrack"
 
 # 服务列表
 SERVICES_BOOT="nftables"
-SERVICES_DEFAULT="sshd mihomo crond qemu-guest-agent"
+SERVICES_DEFAULT="sshd mihomo crond qemu-guest-agent radvd"
 
 # 文件路径
 ASSETS_DIR="./assets"
-NFTABLES_CONFIG="/etc/nftables.nft"
 SYSCTL_CONFIG="/etc/sysctl.d/99-network-gateway.conf"
-IF_UP_DIR="/etc/network/if-up.d"
 MIHOMO_SERVICE="/etc/init.d/mihomo"
 LOGROTATE_CONFIG="/etc/logrotate.d/mihomo"
 
@@ -131,14 +129,15 @@ load_kernel_modules() {
 configure_nftables() {
     log "配置nftables防火墙..."
     local timestamp=""
+    local nftables_config="/etc/nftables.nft"
     
-    if [ -f "${NFTABLES_CONFIG}" ]; then
+    if [ -f "${nftables_config}" ]; then
         timestamp=$(date '+%Y%m%d%H%M%S')
-        mv "${NFTABLES_CONFIG}" "${NFTABLES_CONFIG}.bak.${timestamp}"
+        mv "${nftables_config}" "${nftables_config}.bak.${timestamp}"
     fi
     
     if [ -f "${ASSETS_DIR}/nftables.conf" ]; then
-        cp "${ASSETS_DIR}/nftables.conf" "${NFTABLES_CONFIG}"
+        cp "${ASSETS_DIR}/nftables.conf" "${nftables_config}"
         log "nftables配置文件复制完成"
     else
         log "警告: 未找到nftables配置文件 ${ASSETS_DIR}/nftables.conf"
@@ -177,13 +176,53 @@ configure_sysctl() {
 
 install_network_optimization_script() {
     log "安装网络优化脚本..."
+    local if_up_dir="/etc/network/if-up.d"
     if [ -f "${ASSETS_DIR}/network-optimization" ]; then
-        mkdir -p "${IF_UP_DIR}"
-        cp "${ASSETS_DIR}/network-optimization" "${IF_UP_DIR}/network-optimization"
-        chmod +x "${IF_UP_DIR}/network-optimization"
+        mkdir -p "${if_up_dir}"
+        cp "${ASSETS_DIR}/network-optimization" "${if_up_dir}/network-optimization"
+        chmod +x "${if_up_dir}/network-optimization"
         log "网络优化脚本安装完成"
     else
         log "警告: 未找到网络优化脚本 ${ASSETS_DIR}/network-optimization"
+    fi
+}
+
+configure_radvd() {
+    log "配置 radvd 服务..."
+    local radvd_config="/etc/radvd.conf"
+    local ula_address=""
+    local link_local_address=""
+    
+    # 检测 ULA 地址 (fc00::/7)
+    ula_address=$(ip -6 addr show dev "${NETWORK_IFACE}" scope global | grep -E 'fd00:' | head -n 1 | awk '{print $2}' | cut -d'/' -f1)
+    
+    # 如果没有 ULA 地址，使用 link-local 地址
+    if [ -z "${ula_address}" ]; then
+        link_local_address=$(ip -6 addr show dev "${NETWORK_IFACE}" scope link | grep -E 'fe80::' | head -n 1 | awk '{print $2}' | cut -d'/' -f1)
+        if [ -z "${link_local_address}" ]; then
+            log "警告: 未找到 IPv6 地址，跳过 radvd 配置"
+            return
+        fi
+        ula_address="${link_local_address}"
+        log "未找到 ULA 地址，使用 link-local 地址: ${ula_address}"
+    else
+        log "找到 ULA 地址: ${ula_address}"
+    fi
+    
+    # 生成配置文件
+    if [ -f "${ASSETS_DIR}/radvd.conf.template" ]; then
+        # 替换网卡名称和 IPv6 地址
+        sed -e "s/eth0/${NETWORK_IFACE}/g" \
+            -e "s/fe80::abc:123/${ula_address}/g" \
+            "${ASSETS_DIR}/radvd.conf.template" > "${radvd_config}"
+        log "radvd 配置文件生成完成"
+        
+        # 启动服务
+        rc-update add radvd default 2>/dev/null || true
+        rc-service radvd start 2>/dev/null || true
+        log "radvd 服务配置完成"
+    else
+        log "警告: 未找到 radvd 配置模板 ${ASSETS_DIR}/radvd.conf.template，跳过 radvd 配置"
     fi
 }
 
@@ -335,6 +374,7 @@ main() {
     configure_nftables
     configure_sysctl
     install_network_optimization_script
+    configure_radvd
     
     # mihomo 安装
     download_mihomo
