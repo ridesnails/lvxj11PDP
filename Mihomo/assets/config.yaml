@@ -50,15 +50,18 @@ dns:
   nameserver:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
-  # nameserver-policy:
-  #   rule-set:custom_proxy_domain:
-  #     - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
-  #     - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
-  #   # rule-set:google_domain:
-  #   #   - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
-  #   rule-set:gfw_domain:
-  #     - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
-  #     - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
+  nameserver-policy:
+    rule-set:dns_real_ip:
+      - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
+      - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
+    # rule-set:custom_proxy_domain:
+    #   - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
+    #   - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
+    # rule-set:google_domain:
+    #   - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
+    # rule-set:gfw_domain:
+    #   - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
+    #   - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
 proxies:
   - {name: 直连, type: direct}
 proxy-groups:
