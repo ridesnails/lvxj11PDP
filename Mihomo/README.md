@@ -1,120 +1,207 @@
 # Mihomo 目录说明
 
-本目录存储 mihomo 代理工具的自定义配置文件。
+## 目录概述
+
+本目录包含用于在 Alpine Linux 系统上快速部署 mihomo 代理服务的脚本和配置文件。适用于已安装好的 Alpine 系统。
 
 ## 文件说明
 
-### config.yaml
+### 1. install-mihomo-alpine.sh
 
-mihomo 完整配置文件示例，包含丰富的代理规则和分流策略。
+Alpine 系统 mihomo 旁路网关一键安装脚本。
 
-## 配置特点
+**主要功能**：
+- 系统更新和必要工具安装（含 qemu-guest-agent）
+- 自动检测系统架构和 CPU 指令集
+- 下载匹配架构的 mihomo 最新版本
+- 配置 nftables 防火墙（支持 IPv4/IPv6）
+- 配置系统网络参数（开启 IP 转发、BBR 等）
+- 创建 mihomo 配置目录和默认配置
+- 创建 OpenRC 服务并设置开机启动
+- 配置日志轮转
 
-### 网络设置
-- 混合端口：7892（支持 HTTP/HTTPS/SOCKS）
-- 外部控制器：`[::]:9090`（IPv4/IPv6 双栈）
-- 允许局域网访问
-- 启用 TUN 模式（设备 tun0）
-- 支持 IPv6
+**防火墙规则**：
+- 允许本地回环流量
+- 允许已建立连接
+- 丢弃无效连接
+- 放行所有 ICMPv6
+- 允许本地私网网段（IPv4/IPv6）
 
-### DNS 配置
-- 启用 DNS 服务，监听 53 端口
-- 增强模式：redir-host
-- 支持 Fake-IP
-- 国内 DNS：阿里 DNS、腾讯 DNS
-- 国外 DNS：Google DNS、Cloudflare DNS（通过代理）
-
-### 代理组策略
-
-| 代理组 | 类型 | 说明 |
-|--------|------|------|
-| 🚀 默认代理 | select | 主代理选择 |
-| 🤖 ChatGPT | select | AI 服务专用 |
-| 🎵 TikTok | select | 流媒体服务 |
-| 🎯 直连 | select | 直连流量 |
-| 🐟 漏网之鱼 | select | 默认匹配 |
-| 🇭🇰 香港节点 | select | 香港地区节点 |
-| 🔯 香港故转 | fallback | 香港故障转移 |
-| ♻️ 香港自动 | url-test | 香港自动选择 |
-| 🌏 亚洲节点 | select | 亚洲地区节点 |
-| 🔯 亚洲故转 | fallback | 亚洲故障转移 |
-| ♻️ 亚洲自动 | url-test | 亚洲自动选择 |
-| 🇺🇲 美国节点 | select | 美国地区节点 |
-| 🔯 美国故转 | fallback | 美国故障转移 |
-| ♻️ 自动选择 | url-test | 全局自动选择 |
-| 🌐 全部节点 | select | 所有节点 |
-
-### 规则集
-
-**域名规则**：
-- AI 服务（ChatGPT 等）
-- TikTok
-- Google（含 YouTube）
-- GitHub
-- Telegram
-- GFW 列表
-
-**IP 规则**：
-- Google IP
-- Telegram IP
-- Netflix IP
-- 中国 IP
-
-**自定义规则**：
-- 直连域名：Syncthing、Cloudreve
-- 代理域名：七尺宇博客、TMDb API
-
-### 代理提供商
-
-使用环境变量 `HONGXING_URL` 加载订阅：
-```yaml
-proxy-providers:
-  红杏:
-    type: http
-    url: "$env(HONGXING_URL)"
+**使用方法**：
+```bash
+chmod +x install-mihomo-alpine.sh
+./install-mihomo-alpine.sh
 ```
 
-## 使用方法
+### 2. assets/config.yaml
 
-1. **设置环境变量**
-   ```bash
-   export HONGXING_URL="你的订阅链接"
-   ```
+mihomo 完整配置文件，包含丰富的功能配置。
 
-2. **复制配置文件**
-   ```bash
-   cp config.yaml /etc/mihomo/config.yaml
-   ```
+**主要功能**：
+- 代理提供商自动更新（支持环境变量配置）
+- 详细的 DNS 配置（DoH、fake-ip、域名策略等）
+- 丰富的代理组（香港、亚洲、美国节点等多种选择）
+- 完整的规则配置（AI、TikTok、GitHub、Google、YouTube、Telegram等）
+- TUN 模式配置（自动路由、自动重定向、大 MTU）
+- Sniffer 协议检测（HTTP、TLS、QUIC）
+- 认证配置
+- 外部 UI 支持（Zashboard）
+- 地理位置数据自动更新
 
-3. **重启 mihomo**
-   ```bash
-   rc-service mihomo restart
-   ```
+**注意**：需根据实际情况修改 `PROVIDER1_URL` 环境变量或直接配置代理服务器。
 
-## 自定义规则
+### 3. assets/sysctl.conf.template
 
-编辑 `config.yaml` 中的 `rule-providers` 和 `rules` 部分：
+系统网络参数优化配置模板。
 
-```yaml
-rule-providers:
-  my_rules:
-    type: http
-    behavior: domain
-    url: "https://example.com/my-rules.txt"
-    interval: 86400
+**主要配置**：
+- IP 转发（IPv4/IPv6）
+- IPv6 RA 接收（旁路网关关键）
+- 禁止重定向（防止路由冲突）
+- TCP 拥塞控制（BBR + fq）
+- 连接跟踪优化
+- 网络队列和缓冲区调优
+- 安全加固
 
-rules:
-  - RULE-SET,my_rules,🎯 直连
+**应用方式**：由 `install-mihomo-alpine.sh` 自动部署到 `/etc/sysctl.d/99-network-gateway.conf`
+
+### 4. assets/network-optimization
+
+网卡硬件层优化脚本（hotplug）。
+
+**主要功能**：
+- 增大发送队列长度（txqueuelen = 5000）
+- 启用硬件卸载（TSO/GSO/GRO/LRO）
+- 自动配置多队列（根据 CPU 核心数）
+
+**与 sysctl 的区别**：
+- sysctl：内核协议栈层参数，持久化配置
+- network-optimization：网卡驱动层参数，需要 hotplug 脚本
+
+**部署方式**：复制到 `/etc/network/if-up.d/` 目录，每次网卡启动时自动执行
+
+### 5. assets/nftables.conf
+
+nftables 防火墙规则配置。
+
+**规则说明**：
+- 允许本地回环流量
+- 允许已建立连接
+- 丢弃无效连接
+- 放行所有 ICMPv6
+- 允许本地私网网段（IPv4/IPv6）
+
+### 6. assets/radvd.conf.template
+
+IPv6 路由通告服务配置模板。
+
+**功能**：向局域网广播 IPv6 前缀，实现 IPv6 旁路网关
+
+### 7. assets/mihomo-service
+
+mihomo OpenRC 服务脚本。
+
+**功能**：
+- 启动/停止 mihomo 进程
+- 支持 reload 配置
+- 状态检查
+
+### 8. assets/logrotate.conf.template
+
+mihomo 日志轮转配置。
+
+**功能**：
+- 日志大小限制（100MB）
+- 保留 10 个历史文件
+- 自动压缩旧日志
+
+### 9. assets/update-ipv6-set
+
+动态更新 IPv6 直连网段到防火墙规则。
+
+**功能**：
+- 自动检测主网卡
+- 提取以 2 开头的 IPv6 前缀（通常是公网地址）
+- 添加到 nftables 集合，设置 2 小时超时
+- 支持重复执行刷新超时时间
+
+**使用方法**：
+```bash
+chmod +x update-ipv6-set
+./update-ipv6-set
 ```
 
-## 注意事项
+**建议**：配合 crontab 定期执行（如每 15 分钟）：
+```bash
+echo '*/15 * * * * /etc/periodic/15min/update-ipv6-set' | crontab -
+```
 
-1. 订阅链接通过环境变量传入，避免硬编码敏感信息
-2. 规则集使用 MRS 格式，加载更快
-3. 定期自动更新 GeoIP/GeoSite 数据
-4. 启用 TUN 模式需要系统支持
+## 安装流程
+
+1. **安装 Alpine 系统**
+   请参考 `../Alpine` 目录的说明
+
+2. **安装 mihomo 服务**
+   ```bash
+   chmod +x install-mihomo-alpine.sh
+   ./install-mihomo-alpine.sh
+   ```
+
+3. **配置 IPv6 动态更新**（可选）
+   ```bash
+   mkdir -p /etc/periodic/15min
+   cp assets/update-ipv6-set /etc/periodic/15min/
+   chmod +x /etc/periodic/15min/update-ipv6-set
+   ```
+
+4. **配置 mihomo**
+   - 编辑 `/etc/mihomo/config.yaml`
+   - 添加代理服务器
+   - 重启服务：`rc-service mihomo restart`
+
+## 服务管理
+
+```bash
+# 查看服务状态
+rc-service mihomo status
+rc-service nftables status
+rc-service qemu-guest-agent status
+rc-service radvd status
+
+# 启动/停止/重启
+rc-service mihomo start
+rc-service mihomo stop
+rc-service mihomo restart
+
+# 查看日志
+tail -f /var/log/mihomo/mihomo.log
+```
+
+## Web 面板
+
+安装完成后访问：
+```
+http://<服务器IP>:9090
+```
+
+## 系统要求
+
+- Alpine Linux 3.23+
+- 支持 TUN 的内核
+- Root 权限
+- 网络连接
+
+## 故障排查
+
+| 问题 | 排查命令 |
+|------|----------|
+| mihomo 无法启动 | `tail /var/log/mihomo/mihomo.log` |
+| 防火墙规则 | `nft list ruleset` |
+| TUN 模块 | `lsmod | grep tun` |
+| 网络连接 | `ping -c 4 223.5.5.5` |
+| IPv6 网段 | `ip -6 route show` |
 
 ## 相关链接
 
-- [mihomo 文档](https://wiki.metacubex.one/)
-- [MetaCubeX 规则数据](https://github.com/MetaCubeX/meta-rules-dat)
+- [mihomo](https://github.com/MetaCubeX/mihomo)
+- [Alpine Linux](https://alpinelinux.org/)

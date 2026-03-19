@@ -1,3 +1,22 @@
+proxy-providers:
+  provider1:
+    type: http
+    url: "$env(PROVIDER1_URL)"
+    path: ./proxy_providers/provider1.yaml
+    interval: 3600
+    proxy: DIRECT
+    size-limit: 0
+    header:
+      User-Agent:
+      - "clash"
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 300
+      timeout: 5000
+      lazy: true
+      expected-status: 204
+    exclude-filter: "剩余|套餐|官网|邮箱|异常|已用|流量"
 allow-lan: true
 bind-address: '*'
 mode: rule
@@ -6,7 +25,7 @@ external-controller: '[::]:9090'
 dns:
   enable: true
   ipv6: true
-  enhanced-mode: redir-host
+  enhanced-mode: fake-ip # redir-host
   fake-ip-range: 198.18.128.1/17
   use-hosts: true
   fallback-filter:
@@ -57,25 +76,6 @@ proxy-groups:
   - {name: 🔯 美国故转, type: fallback, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(美|US|(?i)UnitedStates|United States|America))^((?!(剩余|套餐|官网)).)*$"}
   - {name: ♻️ 自动选择, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "^((?!(直连)).)*$"}
   - {name: 🌐 全部节点, type: select, include-all: true}
-proxy-providers:
-  红杏:
-    type: http
-    url: "$env(HONGXING_URL)"
-    path: ./proxy_providers/hongxing.yaml
-    interval: 3600
-    proxy: DIRECT
-    size-limit: 0
-    header:
-      User-Agent:
-      - "clash"
-    health-check:
-      enable: true
-      url: https://www.gstatic.com/generate_204
-      interval: 300
-      timeout: 5000
-      lazy: true
-      expected-status: 204
-    exclude-filter: "剩余|套餐|官网|邮箱|异常|已用|流量"
 rules:
   # 规则越少速度越快，请删除或注释不需要的规则，也可以添加自己需要的规则，谨慎添加条目很多的规则集。
   - AND,((NETWORK,UDP),(DST-PORT,443)),REJECT    # 禁用QUIC
@@ -119,7 +119,7 @@ rule-providers:
     type: inline
     behavior: domain
     payload:
-      - '+.qichiyu.com'   # 七尺宇博客
+      - '+.qichiyu.com'
       - 'api.themoviedb.org'
 find-process-mode: off
 interface-name: eth0
@@ -144,9 +144,9 @@ tun:
   enable: true
   device: tun0
   stack: mixed
-  # dns-hijack:
-  #   - any:53
-  #   - tcp://any:53
+  dns-hijack:
+    - any:53
+    - tcp://any:53
   mtu: 9000
   gso: true
   gso-max-size: 65536
