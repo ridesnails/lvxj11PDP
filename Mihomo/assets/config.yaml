@@ -17,6 +17,13 @@ proxy-providers:
       lazy: true
       expected-status: 204
     exclude-filter: "剩余|套餐|官网|邮箱|异常|已用|流量"
+custom_anchors:
+  ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: mrs}
+  domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
+  class: &class {type: http, interval: 86400, behavior: classical, format: text}
+  proxy_dns_only_ipv4: &proxy_dns_only_ipv4
+    - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
+    - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
 allow-lan: true
 bind-address: '*'
 mode: rule
@@ -51,17 +58,10 @@ dns:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
   nameserver-policy:
-    rule-set:dns_real_ip:
-      - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
-      - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
-    # rule-set:custom_proxy_domain:
-    #   - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
-    #   - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
-    # rule-set:google_domain:
-    #   - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
-    # rule-set:gfw_domain:
-    #   - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
-    #   - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
+    "rule-set:dns_real_ip": *proxy_dns_only_ipv4    # 关键字中有冒号，添加双引号防止错误解析
+    # "rule-set:custom_proxy_domain": *proxy_dns_only_ipv4
+    # "rule-set:google_domain": *proxy_dns_only_ipv4
+    # "rule-set:gfw_domain": *proxy_dns_only_ipv4
 proxies:
   - {name: 直连, type: direct}
 proxy-groups:
@@ -96,10 +96,6 @@ rules:
   - RULE-SET,netflix_ip,🚀 默认代理,no-resolve
   - RULE-SET,google_ip,🚀 默认代理,no-resolve
   - MATCH,🐟 漏网之鱼
-rule-anchor:
-  ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: mrs}
-  domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
-  class: &class {type: http, interval: 86400, behavior: classical, format: text}
 rule-providers: 
   ai: {  <<: *domain, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ai-!cn.mrs" }
   tiktok_domain: { <<: *domain, url: "https://gh-proxy.com/https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/tiktok.mrs"}
