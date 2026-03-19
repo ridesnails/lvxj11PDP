@@ -50,15 +50,15 @@ dns:
   nameserver:
     - https://dns.alidns.com/dns-query
     - https://doh.pub/dns-query
-  nameserver-policy:
-    rule-set:custom_proxy_domain:
-      - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
-      - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
-    # rule-set:google_domain:
-    #   - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
-    rule-set:gfw_domain:
-      - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
-      - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
+  # nameserver-policy:
+  #   rule-set:custom_proxy_domain:
+  #     - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
+  #     - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
+  #   # rule-set:google_domain:
+  #   #   - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
+  #   rule-set:gfw_domain:
+  #     - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
+  #     - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
 proxies:
   - {name: 直连, type: direct}
 proxy-groups:
@@ -84,11 +84,10 @@ rules:
   - RULE-SET,custom_proxy_domain,🚀 默认代理
   - RULE-SET,ai,🤖 ChatGPT
   - RULE-SET,tiktok_domain,🎵 TikTok
-  # - IP-CIDR,198.18.128.4/17,🚀 默认代理,no-resolve
-  - RULE-SET,github_domain,🚀 默认代理
-  - RULE-SET,google_domain,🚀 默认代理
-  - RULE-SET,youtube_domain,🚀 默认代理
-  - RULE-SET,telegram_domain,🚀 默认代理
+  # - RULE-SET,github_domain,🚀 默认代理
+  # - RULE-SET,google_domain,🚀 默认代理
+  # - RULE-SET,youtube_domain,🚀 默认代理
+  # - RULE-SET,telegram_domain,🚀 默认代理
   - RULE-SET,gfw_domain,🚀 默认代理
   - RULE-SET,telegram_ip,🚀 默认代理,no-resolve
   - RULE-SET,netflix_ip,🚀 默认代理,no-resolve
@@ -130,9 +129,9 @@ rule-providers:
       - '+.googleapis.com'
       - '+.gstatic.com'
       - '+.xn--ngstr-lra8j.com'
-      - '+.googleapis.cn'
-      - '+.google.cn'
-      - 'recaptcha-cn.net'
+      # - '+.googleapis.cn'
+      # - '+.google.cn'
+      # - 'recaptcha-cn.net'
 find-process-mode: off
 interface-name: eth0
 ipv6: true
