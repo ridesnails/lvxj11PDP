@@ -33,6 +33,7 @@ dns:
     ipcidr: [240.0.0.0/4, 0.0.0.0/32]
   listen: '[::]:53'
   fake-ip-filter:
+    - RULE-SET,dns_real_ip,real-ip
     - RULE-SET,custom_proxy_domain,fake-ip
     - RULE-SET,gfw_domain,fake-ip
     - MATCH,real-ip
@@ -121,6 +122,17 @@ rule-providers:
     payload:
       - '+.qichiyu.com'
       - 'api.themoviedb.org'
+  dns_real_ip:
+    type: inline
+    behavior: domain
+    payload:
+      - '+.gvt1.com'
+      - '+.googleapis.com'
+      - '+.gstatic.com'
+      - '+.xn--ngstr-lra8j.com'
+      - '+.googleapis.cn'
+      - '+.google.cn'
+      - 'recaptcha-cn.net'
 find-process-mode: off
 interface-name: eth0
 ipv6: true
