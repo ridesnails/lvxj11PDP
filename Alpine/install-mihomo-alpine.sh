@@ -374,7 +374,7 @@ main() {
     configure_nftables
     configure_sysctl
     install_network_optimization_script
-    configure_radvd
+    # configure_radvd  # 注释掉以避免旁路由接管 IPv6 网关
     
     # mihomo 安装
     download_mihomo
