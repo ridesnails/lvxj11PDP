@@ -9,7 +9,7 @@ interface eth0 {                # 替换为你的 Alpine 网卡名称
         AdvAutonomous off;      # 关键：设为 off，让客户端去拿 ROS 分发的地址
         AdvRouterAddr on;       # 告诉客户端本接口有路由能力
     };
-    RDNSS fe80::abc:123 {       # DNS替换为 Alpine 的 Link-Local 地址
+    RDNSS fe80::abc:123 {       # DNS替换为 Alpine 的 ULA 或者 Link-Local 地址
         FlushRDNSS on;
     };
 };
