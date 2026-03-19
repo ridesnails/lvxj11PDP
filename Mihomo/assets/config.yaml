@@ -21,6 +21,9 @@ custom_anchors:
   ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: mrs}
   domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
   class: &class {type: http, interval: 86400, behavior: classical, format: text}
+  direct_dns: &direct_dns
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
   proxy_dns_only_ipv4: &proxy_dns_only_ipv4
     - "https://dns.google/dns-query#🚀 默认代理&disable-ipv6=true"
     - "https://dns.cloudflare.com/dns-query#🚀 默认代理&disable-ipv6=true"
@@ -51,12 +54,9 @@ dns:
   default-nameserver:
     - 223.5.5.5
     - 119.29.29.29
-  proxy-server-nameserver:
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
-  nameserver:
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
+  proxy-server-nameserver: *direct_dns
+  nameserver: *direct_dns
+  direct-nameserver: *direct_dns
   nameserver-policy:
     "rule-set:dns_real_ip": *proxy_dns_only_ipv4    # 关键字中有冒号，添加双引号防止错误解析
     # "rule-set:custom_proxy_domain": *proxy_dns_only_ipv4
