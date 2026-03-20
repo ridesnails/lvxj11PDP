@@ -29,7 +29,7 @@ echo "完成！现在可以安装nikki软件包了。"
 
 # 自定义软件包
 PACKAGES="-dnsmasq dnsmasq-full ip-full \
-kmod-tun kmod-inet-diag kmod-nft-tproxy \
+kmod-tun kmod-inet-diag kmod-nft-tproxy kmod-tcp-bbr \
 ca-bundle curl wget-ssl unzip tree \
 htop iftop tcpdump-mini \
 openssh-sftp-server qemu-ga \

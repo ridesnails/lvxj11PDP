@@ -69,6 +69,7 @@ dist/
 build/
 out/
 target/
+imagebuilder/25.12/output/
 
 # 缓存
 .cache/
