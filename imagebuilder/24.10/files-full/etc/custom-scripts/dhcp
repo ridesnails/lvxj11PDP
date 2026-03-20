@@ -1,0 +1,186 @@
+
+config dnsmasq
+	option domainneeded '1'
+	option boguspriv '1'
+	option filterwin2k '0'
+	option localise_queries '1'
+	option rebind_protection '1'
+	option rebind_localhost '1'
+	option local '/lan/'
+	option domain 'lan'
+	option expandhosts '1'
+	option min_cache_ttl '3600'
+	option use_stale_cache '3600'
+	option cachesize '8000'
+	option nonegcache '1'
+	option authoritative '1'
+	option readethers '1'
+	option leasefile '/tmp/dhcp.leases'
+	option resolvfile '/tmp/resolv.conf.d/resolv.conf.auto'
+	option nonwildcard '1'
+	option localservice '1'
+	option ednspacket_max '1232'
+	option filter_aaaa '0'
+	option filter_a '0'
+
+config dhcp 'lan'
+	option interface 'lan'
+	option start '128'
+	option limit '112'
+	option leasetime '2h'
+	option dhcpv4 'server'
+	option dhcpv6 'disabled'
+	option ra 'server'
+	option ra_slaac '1'
+	list ra_flags 'other-config'
+	list ra_flags 'none'
+	option max_preferred_lifetime '1800'
+	option max_valid_lifetime '3600'
+	list dhcp_option 'tag:t_bypass3,3,192.168.56.3'
+	list dhcp_option 'tag:t_bypass3,6,192.168.56.3'
+	list dhcp_option 'tag:t_bypass4,3,192.168.56.4'
+	list dhcp_option 'tag:t_bypass4,6,192.168.56.4'
+	list dhcp_option 'tag:t_bypass5,3,192.168.56.5'
+	list dhcp_option 'tag:t_bypass5,6,192.168.56.5'
+	list dhcp_option 'tag:t_reject,3,192.168.56.11'
+	list dhcp_option 'tag:t_reject,6,192.168.56.11'
+	option ra_dns '0'
+	option dns_service '0'
+	option ra_mininterval '60'
+	option ra_maxinterval '180'
+
+config dhcp 'wan'
+	option interface 'wan'
+	option ignore '1'
+
+config odhcpd 'odhcpd'
+	option maindhcp '0'
+	option leasefile '/tmp/hosts/odhcpd'
+	option leasetrigger '/usr/sbin/odhcpd-update'
+	option loglevel '4'
+
+config host
+	option name 'BE7200pro'
+	list mac '2c:70:4f:3b:fe:b3'
+	option ip '192.168.56.2'
+
+config host
+	option name 'Bypass3'
+	list mac '00:33:10:75:92:56'
+	option ip '192.168.56.3'
+
+config host
+	option name 'Bypass4'
+	list mac '00:21:98:00:83:53'
+	option ip '192.168.56.4'
+
+config host
+	option name 'Bypass5'
+	list mac 'bc:24:11:b5:b1:45'
+	option ip '192.168.56.5'
+
+config host
+	option name 'device-FLLOr7'
+	list mac '40:ed:98:11:1c:c3'
+	option ip '192.168.56.6'
+
+config host
+	option name 'device-Quest2'
+	list mac '80:f3:ef:3b:53:ac'
+	option ip '192.168.56.7'
+	list tag 't_reject'
+
+config host
+	option name 'switch-seek'
+	list mac '1c:2a:a3:1a:93:f6'
+	option ip '192.168.56.8'
+
+config host
+	option name 'server-N5105'
+	list mac '7c:2b:e1:12:f1:59'
+	option ip '192.168.56.9'
+
+config host
+	option name 'server-NAS'
+	list mac '00:F0:B4:0F:79:92'
+	option ip '192.168.56.10'
+
+config host
+	option name 'vmserver-TrueNAS'
+	list mac '0e:eb:d7:7d:a6:23'
+	option ip '192.168.56.11'
+	list tag 't_bypass3'
+
+config host
+	option name 'vmserver-1Panel'
+	list mac '9a:5f:06:a1:9a:ea'
+	option ip '192.168.56.12'
+	list tag 't_bypass3'
+
+config host
+	option name 'unraid'
+	list mac 'BC:24:11:4A:76:AF'
+	option ip '192.168.56.13'
+	list tag 't_bypass3'
+
+config host
+	option name 'debian-docker'
+	list mac 'BC:24:11:91:B5:A4'
+	option ip '192.168.56.14'
+	list tag 't_bypass3'
+
+config host
+	option name 'device-HPlan'
+	list mac '84:2a:fd:07:6c:0b'
+	option ip '192.168.56.20'
+
+config host
+	option name 'device-HPwifi'
+	list mac '28:cd:c4:5e:e7:7d'
+	option ip '192.168.56.21'
+
+config host
+	option name 'lucky-lxc'
+	list mac 'BC:24:11:B4:82:51'
+	option ip '192.168.56.32'
+
+config host
+	option name 'user-lvxj11-pc'
+	list mac '00:E0:1B:B6:80:8F'
+	list mac '00:E0:1A:AF:01:88'
+	option ip '192.168.56.96'
+	list tag 't_bypass3'
+
+config host
+	option name 'user-lvxj11-hmphone'
+	list mac 'DC:F0:90:F3:3F:3B'
+	option ip '192.168.56.97'
+	list tag 't_bypass3'
+
+config host
+	option name 'user-lvxj11-phone'
+	list mac '02:57:13:e3:68:4f'
+	option ip '192.168.56.98'
+	list tag 't_bypass3'
+
+config host
+	option name 'user-SteamDeck'
+	list mac '44:1a:84:7f:32:0a'
+	option ip '192.168.56.99'
+	list tag 't_bypass3'
+
+config host
+	option name 'user-lvry11-laptop'
+	list mac 'd4:d8:53:88:1a:8f'
+	option ip '192.168.56.100'
+
+config host
+	option name 'user-lvry11-phone'
+	list mac 'ae:0c:2b:e0:fe:58'
+	option ip '192.168.56.101'
+
+config host
+	option name 'user-lvrg11-laptop'
+	list mac '80:b6:55:9c:e5:78'
+	option ip '192.168.56.102'
+
