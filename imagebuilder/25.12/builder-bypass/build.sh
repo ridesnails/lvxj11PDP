@@ -30,7 +30,9 @@ echo "完成！现在可以安装nikki软件包了。"
 # 自定义软件包
 PACKAGES="-dnsmasq dnsmasq-full ip-full openssh-sftp-server qemu-ga \
 kmod-tun kmod-inet-diag kmod-nft-tproxy kmod-sched kmod-tcp-bbr \
-ca-bundle curl wget-ssl unzip tree htop iftop tcpdump-mini \
+ca-bundle ca-certificates \
+curl wget-ssl jq unzip tree \
+htop iftop tcpdump-mini \
 luci luci-compat luci-base luci-i18n-base-zh-cn \
 luci-i18n-package-manager-zh-cn \
 luci-app-firewall luci-i18n-firewall-zh-cn \

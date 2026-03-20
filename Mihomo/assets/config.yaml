@@ -132,7 +132,7 @@ rule-providers:
       # - '+.google.cn'
       # - 'recaptcha-cn.net'
 find-process-mode: off
-interface-name: eth0
+# interface-name: eth0
 ipv6: true
 unified-delay: false
 tcp-concurrent: true

@@ -28,7 +28,7 @@ GITHUB_API_URL="https://api.github.com/repos/MetaCubeX/mihomo/releases/latest"
 ARCH_MAP="x86_64:amd64 aarch64:arm64 armv7l:armv7 arm:armv7"
 
 # 软件包列表
-PACKAGES_BASE="curl iproute2 nftables openssh net-tools tzdata jq ca-certificates wget tcpdump htop iftop qemu-guest-agent ethtool radvd"
+PACKAGES_BASE="curl iproute2 nftables openssh tzdata jq ca-certificates wget tcpdump htop iftop qemu-guest-agent ethtool radvd"
 
 # 内核模块列表
 KERNEL_MODULES="tun br_netfilter nf_conntrack"
