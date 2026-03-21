@@ -48,7 +48,7 @@ dns:
     - RULE-SET,gfw_domain,fake-ip
     - MATCH,real-ip
   fake-ip-filter-mode: rule
-  respect-rules: true
+  respect-rules: false
   prefer-h3: false
   use-system-hosts: true
   default-nameserver:
@@ -157,7 +157,7 @@ tun:
   dns-hijack:
     - any:53
     - tcp://any:53
-  mtu: 9000
+  mtu: 1400
   gso: true
   gso-max-size: 65536
   auto-route: true
@@ -184,8 +184,8 @@ tun:
     - ::1/128
 sniffer:
   enable: true
-  force-dns-mapping: true
-  parse-pure-ip: true
+  force-dns-mapping: false
+  parse-pure-ip: false
   skip-domain:
     - Mijia Cloud
     - "dlg.apple.com"
