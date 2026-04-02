@@ -37,7 +37,6 @@ luci luci-compat luci-base luci-i18n-base-zh-cn \
 luci-i18n-package-manager-zh-cn \
 luci-app-firewall luci-i18n-firewall-zh-cn \
 luci-app-ttyd luci-i18n-ttyd-zh-cn \
-luci-app-upnp luci-i18n-upnp-zh-cn \
 luci-app-nikki luci-i18n-nikki-zh-cn"
 
 # 开始生成镜像
