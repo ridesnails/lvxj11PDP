@@ -1,14 +1,16 @@
 proxy-providers:
-  provider1:
+  机场1:
     type: http
-    url: "$env(PROVIDER1_URL)"
-    path: ./proxy_providers/provider1.yaml
+    url: "订阅地址"
+    path: ./proxy_providers/jc1.yaml
     interval: 3600
     proxy: DIRECT
     size-limit: 0
     header:
       User-Agent:
-      - "clash"
+      - "Clash/v1.18.0"
+      - "mihomo/1.19.22"
+      # - "ninja"
     health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
@@ -16,7 +18,6 @@ proxy-providers:
       timeout: 5000
       lazy: true
       expected-status: 204
-    exclude-filter: "剩余|套餐|官网|邮箱|异常|已用|流量"
 custom_anchors:
   ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: mrs}
   domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
@@ -62,20 +63,21 @@ dns:
 proxies:
   - {name: 直连, type: direct}
 proxy-groups:
+  # 使用单引号防止正则表达式中转义符被提前转义
   - {name: 🚀 默认代理, type: select, proxies: [🔯 香港故转, 🔯 亚洲故转, ♻️ 香港自动, ♻️ 亚洲自动, 🔯 美国故转, ♻️ 自动选择, 🇭🇰 香港节点, 🌏 亚洲节点, 🇺🇸 美国节点, 🌐 全部节点, 直连]}
   - {name: 🤖 ChatGPT, type: select, proxies: [🔯 亚洲故转, ♻️ 亚洲自动, 🔯 美国故转, 🌏 亚洲节点, 🇺🇸 美国节点, 🌐 全部节点, 直连]}
   - {name: 🎵 TikTok, type: select, proxies: [🔯 亚洲故转, ♻️ 亚洲自动, 🔯 美国故转, 🌏 亚洲节点, 🇺🇸 美国节点, 🌐 全部节点, 直连]}
   - {name: 🎯 直连, type: select, proxies: [直连, 🚀 默认代理]}
   - {name: 🐟 漏网之鱼, type: select, proxies: [直连, 🚀 默认代理, 🔯 香港故转, 🔯 亚洲故转, ♻️ 香港自动, ♻️ 亚洲自动, 🔯 美国故转, ♻️ 自动选择, 🇭🇰 香港节点, 🌏 亚洲节点, 🇺🇸 美国节点, 🌐 全部节点]}
-  - {name: 🇭🇰 香港节点, type: select, include-all: true, filter: "(?=.*(港|HK|(?i)HongKong|hong kong))^((?!(剩余|套餐|官网)).)*$"}
-  - {name: 🔯 香港故转, type: fallback, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(港|HK|(?i)HongKong|hong kong))^((?!(剩余|套餐|官网)).)*$"}
-  - {name: ♻️ 香港自动, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(港|HK|(?i)HongKong|hong kong))^((?!(剩余|套餐|官网)).)*$"}
-  - {name: 🌏 亚洲节点, type: select, include-all: true, filter: "(?=.*(新加坡|SG|Singapore|日|JP|Japan|韩|KR|Korea|台|TW|Taiwan))^((?!(剩余|套餐|官网|尼)).)*$"}
-  - {name: 🔯 亚洲故转, type: fallback, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(新加坡|SG|Singapore|日|JP|Japan|韩|KR|Korea|台|TW|Taiwan))^((?!(剩余|套餐|官网|尼)).)*$"}
-  - {name: ♻️ 亚洲自动, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(新加坡|SG|Singapore|日|JP|Japan|韩|KR|Korea|台|TW|Taiwan))^((?!(剩余|套餐|官网|尼)).)*$"}
-  - {name: 🇺🇸 美国节点, type: select, include-all: true, filter: "(?=.*(美|US|(?i)UnitedStates|United States|America))^((?!(剩余|套餐|官网)).)*$"}
-  - {name: 🔯 美国故转, type: fallback, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(美|US|(?i)UnitedStates|United States|America))^((?!(剩余|套餐|官网)).)*$"}
-  - {name: ♻️ 自动选择, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "^((?!(直连)).)*$"}
+  - {name: 🇭🇰 香港节点, type: select, include-all: true, filter: '(?i)港|HK|Hong\s?Kong'}
+  - {name: 🔯 香港故转, type: fallback, include-all: true, tolerance: 20, interval: 300, filter: '(?i)港|HK|Hong\s?Kong'}
+  - {name: ♻️ 香港自动, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: '(?i)港|HK|Hong\s?Kong'}
+  - {name: 🌏 亚洲节点, type: select, include-all: true, filter: '(?i)新加坡|SG|Singapore|日|JP|Japan|韩|KR|Korea|台|TW|Taiwan', exclude-filter: '尼'}
+  - {name: 🔯 亚洲故转, type: fallback, include-all: true, tolerance: 20, interval: 300, filter: '(?i)新加坡|SG|Singapore|日|JP|Japan|韩|KR|Korea|台|TW|Taiwan', exclude-filter: '尼'}
+  - {name: ♻️ 亚洲自动, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: '(?i)新加坡|SG|Singapore|日|JP|Japan|韩|KR|Korea|台|TW|Taiwan', exclude-filter: '尼'}
+  - {name: 🇺🇸 美国节点, type: select, include-all: true, filter: '(?i)美|US|United\\s?States|America', exclude-filter: '亚'}
+  - {name: 🔯 美国故转, type: fallback, include-all: true, tolerance: 20, interval: 300, filter: '(?i)美|US|United\\s?States|America', exclude-filter: '亚'}
+  - {name: ♻️ 自动选择, type: url-test, include-all: true, tolerance: 20, interval: 300, exclude-filter: '直连|剩余|套餐|官网|邮箱|异常|已用|流量|到期|最新'}
   - {name: 🌐 全部节点, type: select, include-all: true}
 rules:
   # 规则越少速度越快，请删除或注释不需要的规则，也可以添加自己需要的规则，谨慎添加条目很多的规则集。
@@ -108,6 +110,9 @@ rule-providers:
     behavior: domain
     payload:
       - 'api.themoviedb.org'
+      # 需代理机场官网
+      - '+.surfcloud.dev'
+      - '+.laomao.biz'
   dns_real_ip:
     type: inline
     behavior: domain
