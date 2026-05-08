@@ -1,11 +1,26 @@
 #!/bin/bash
+VERSION='x86-64-24.10'
+LATEST_VERSION=$(curl -s https://hub.docker.com/v2/repositories/openwrt/imagebuilder/tags?name=${VERSION} | \
+    jq -r '.results[].name' | \
+    grep -E '^'${VERSION}'\.[0-9]{1,2}$' | \
+    sort -V | \
+    tail -n 1)
+if [ -n "${LATEST_VERSION}" ]; then
+    echo "找到最新版本: ${LATEST_VERSION}"
+    VERSION="${LATEST_VERSION}"
+else
+    echo "未找到最新版本, 使用默认版本: ${VERSION}"
+    VERSION="${VERSION}.0"
+fi
+echo "使用版本: ${VERSION}"
+
 chmod -R 777 .
 docker run --rm -it --name imagebuilder \
-    -v ./bin:/home/build/immortalwrt/bin \
-    -v ./files-bypass:/home/build/immortalwrt/files \
-    -v ./build-bypass.sh:/home/build/immortalwrt/build.sh \
-    immortalwrt/imagebuilder:x86-64-openwrt-24.10.5 \
-    /bin/bash -c "/home/build/immortalwrt/build.sh"
-    
-    # /bin/bash -c "/home/build/immortalwrt/build.sh"
-    # /bin/bash -c "sleep infinity"
+    -v ./output:/output \
+    -v ./builder-bypass/files:/builder/files \
+    -v ./builder-bypass/build.sh:/builder/build.sh \
+    openwrt/imagebuilder:${VERSION} \
+    /bin/bash -c "/builder/build.sh"
+
+#     /bin/bash -c "/builder/build.sh"
+#     /bin/bash -c "sleep infinity"
