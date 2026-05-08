@@ -13,7 +13,7 @@ sed -i '/^CONFIG_VMDK_IMAGES/d' .config
 sed -i '/^CONFIG_VHDX_IMAGES/d' .config
 
 # 更换为镜像源
-# sed -i 's|https://downloads.openwrt.org|https://mirrors.ustc.edu.cn/openwrt|g' repositories
+sed -i 's|https://downloads.openwrt.org|https://mirrors.ustc.edu.cn/openwrt|g' repositories
 # 添加nikki源
 ARCH="x86_64"
 BRANCH="openwrt-25.12"
