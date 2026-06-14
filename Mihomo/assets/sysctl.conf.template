@@ -2,6 +2,11 @@
 net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
 
+# 关闭反向路径过滤（旁路网关必需，避免不对称路由问题）
+net.ipv4.conf.all.rp_filter = 0
+net.ipv4.conf.default.rp_filter = 0
+net.ipv4.conf.eth0.rp_filter = 0
+
 # IPv6 RA（旁路网关关键）
 net.ipv6.conf.all.accept_ra = 2
 net.ipv6.conf.default.accept_ra = 2

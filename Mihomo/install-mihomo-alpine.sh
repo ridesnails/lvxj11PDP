@@ -137,7 +137,13 @@ configure_nftables() {
     fi
     
     if [ -f "${ASSETS_DIR}/nftables.conf" ]; then
-        cp "${ASSETS_DIR}/nftables.conf" "${nftables_config}"
+        if [ "${NETWORK_IFACE}" != "eth0" ] && [ -n "${NETWORK_IFACE}" ]; then
+            log "检测到网卡为 ${NETWORK_IFACE}，替换配置中的网卡名称..."
+            sed "s/eth0/${NETWORK_IFACE}/g" "${ASSETS_DIR}/nftables.conf" > "${nftables_config}"
+        else
+            log "使用默认网卡 eth0 配置..."
+            cp "${ASSETS_DIR}/nftables.conf" "${nftables_config}"
+        fi
         log "nftables配置文件复制完成"
     else
         log "警告: 未找到nftables配置文件 ${ASSETS_DIR}/nftables.conf"
