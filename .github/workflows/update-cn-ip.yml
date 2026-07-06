@@ -21,7 +21,7 @@ jobs:
           
       - name: Set release body
         run: |
-          echo "Updated CN IP list - $(date -u +%Y-%m-%d %H:%M:%S) UTC" > /tmp/release_body.txt
+          echo "Updated CN IP list - $(date -u '+%Y-%m-%d %H:%M:%S')" > /tmp/release_body.txt
           cat /tmp/release_body.txt
           
       - name: Create or update release
