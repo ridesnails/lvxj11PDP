@@ -28,7 +28,7 @@
 
 | 选项 | 描述 | 默认值 |
 |------|------|--------|
-| `-l, --list-name NAME` | 设置地址列表名称 | cn-ip |
+| `-l, --list-name NAME` | 设置地址列表名称 | CN-IP |
 | `-o, --output FILE` | 设置输出文件名 | cn-ip-routeros.rsc |
 | `-h, --help` | 显示帮助信息 | - |
 
