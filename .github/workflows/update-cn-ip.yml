@@ -20,9 +20,9 @@ jobs:
           ./download-cn-ip.sh
           
       - name: Set release body
-        id: set-body
         run: |
-          echo "body=Updated CN IP list - $(date -u +%Y-%m-%d %H:%M:%S) UTC" >> "$GITHUB_OUTPUT"
+          echo "Updated CN IP list - $(date -u +%Y-%m-%d %H:%M:%S) UTC" > /tmp/release_body.txt
+          cat /tmp/release_body.txt
           
       - name: Create or update release
         uses: ncipollo/release-action@v1
@@ -33,4 +33,4 @@ jobs:
           allowUpdates: true
           artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc"
           artifactContentType: text/plain
-          body: ${{ steps.set-body.outputs.body }}
+          bodyFile: "/tmp/release_body.txt"
