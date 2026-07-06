@@ -14,9 +14,15 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Run download script
+        working-directory: cn-ip-routeros
         run: |
-          chmod +x cn-ip-routeros/download-cn-ip.sh
-          ./cn-ip-routeros/download-cn-ip.sh
+          chmod +x download-cn-ip.sh
+          ./download-cn-ip.sh
+          
+      - name: Set release body
+        id: set-body
+        run: |
+          echo "body=Updated CN IP list - $(date -u +%Y-%m-%d %H:%M:%S) UTC" >> "$GITHUB_OUTPUT"
           
       - name: Create or update release
         uses: ncipollo/release-action@v1
@@ -27,4 +33,5 @@ jobs:
           allowUpdates: true
           artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc"
           artifactContentType: text/plain
-          body: "Updated CN IP list - $(date -u +%Y-%m-%d %H:%M:%S) UTC"
+          body: ${{ steps.set-body.outputs.body }}
+          omitBodyDuringUpdate: true
