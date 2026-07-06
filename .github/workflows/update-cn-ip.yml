@@ -34,4 +34,3 @@ jobs:
           artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc"
           artifactContentType: text/plain
           body: ${{ steps.set-body.outputs.body }}
-          omitBodyDuringUpdate: true
