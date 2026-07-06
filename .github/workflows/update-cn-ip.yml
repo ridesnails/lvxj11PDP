@@ -1,0 +1,30 @@
+name: Update CN IP List
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-cn-ip:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Run download script
+        run: |
+          chmod +x cn-ip-routeros/download-cn-ip.sh
+          ./cn-ip-routeros/download-cn-ip.sh
+          
+      - name: Create or update release
+        uses: ncipollo/release-action@v1
+        with:
+          name: CN IP RouterOS Script
+          tag: cn-ip-routeros
+          commit: main
+          allowUpdates: true
+          artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc"
+          artifactContentType: text/plain
+          body: "Updated CN IP list - $(date -u +%Y-%m-%d %H:%M:%S) UTC"
