@@ -82,7 +82,7 @@ jobs:
         if: steps.compare.outputs.changed == 'true'
         uses: ncipollo/release-action@v1
         with:
-          name: CN IP RouterOS Script
+          name: CN IP RouterOS Script Latest
           tag: cn-ip-routeros
           commit: main
           allowUpdates: false
