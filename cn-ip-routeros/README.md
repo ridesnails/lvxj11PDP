@@ -1,6 +1,6 @@
 # CN IP RouterOS Script Generator
 
-一个用于下载中国IP地址列表并生成RouterOS脚本的工具。
+一个用于下载中国IP地址列表并生成RouterOS脚本的工具，包含IPv4和IPv6地址段。
 
 ## 功能特性
 
