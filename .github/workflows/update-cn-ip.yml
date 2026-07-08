@@ -56,6 +56,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           
+      - name: Set release variables
+        if: steps.compare.outputs.changed == 'true'
+        id: release-vars
+        run: |
+          DATE_TAG="$(date -u +%Y%m%d-%H%M%S)"
+          DATE_FULL="$(date -u '+%Y-%m-%d %H:%M:%S')"
+          echo "date_tag=$DATE_TAG" >> "$GITHUB_OUTPUT"
+          echo "date_full=$DATE_FULL" >> "$GITHUB_OUTPUT"
+          echo "日期标签: $DATE_TAG"
+          echo "完整日期: $DATE_FULL"
+          
       - name: Create latest release
         if: steps.compare.outputs.changed == 'true'
         uses: ncipollo/release-action@v1
@@ -66,16 +77,16 @@ jobs:
           allowUpdates: false
           artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc"
           artifactContentType: text/plain
-          body: "更新CN IP列表 - $(date -u '+%Y-%m-%d %H:%M:%S') UTC"
+          body: "更新CN IP列表 - ${{ steps.release-vars.outputs.date_full }} UTC"
           
       - name: Create dated release
         if: steps.compare.outputs.changed == 'true'
         uses: ncipollo/release-action@v1
         with:
-          name: CN IP RouterOS Script - $(date -u '+%Y-%m-%d %H:%M:%S') UTC
-          tag: cn-ip-routeros-$(date -u +%Y%m%d-%H%M%S)
+          name: CN IP RouterOS Script
+          tag: cn-ip-routeros-${{ steps.release-vars.outputs.date_tag }}
           commit: main
           allowUpdates: false
           artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc"
           artifactContentType: text/plain
-          body: "更新CN IP列表 - $(date -u '+%Y-%m-%d %H:%M:%S') UTC"
+          body: "更新CN IP列表 - ${{ steps.release-vars.outputs.date_full }} UTC"
