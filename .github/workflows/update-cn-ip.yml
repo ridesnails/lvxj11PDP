@@ -83,7 +83,6 @@ jobs:
         if: steps.compare.outputs.changed == 'true'
         uses: ncipollo/release-action@v1
         with:
-          name: CN IP RouterOS Script
           tag: cn-ip-routeros-${{ steps.release-vars.outputs.date_tag }}
           commit: main
           allowUpdates: false
