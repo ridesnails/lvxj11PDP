@@ -93,5 +93,6 @@ jobs:
           body: |
             更新CN IP列表 - ${{ steps.release-vars.outputs.date_full }} UTC
 
-            此标签始终保持最新版本，适合用于自动更新。
+            此标签始终保持最新版本，适合用于自动更新，路径中使用标签名称cn-ip-routeros。
+            因为本仓库还有其他内容，不建议使用latest作为下载路径。
             如需固定版本，请使用带日期的标签。
