@@ -9,9 +9,14 @@ jobs:
   update-cn-ip:
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: write # 必须赋予写入权限以修改 Release 和 Tag
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
         
       - name: Run script and compare
         id: compare
@@ -21,12 +26,12 @@ jobs:
           chmod +x download-cn-ip.sh
           ./download-cn-ip.sh
           
-          # 生成MD5文件并获取值（一次计算，双重用途）
+          # 生成MD5文件并获取值
           md5sum dist/cn-ip-routeros.rsc > dist/cn-ip-routeros.rsc.md5
           NEW_MD5=$(cut -d' ' -f1 dist/cn-ip-routeros.rsc.md5)
           echo "新文件MD5: $NEW_MD5"
           
-          # 下载旧release的MD5文件用于比较（比下载完整rsc文件更快）
+          # 先下载旧release的MD5文件（仅约50字节，快速比较）
           mkdir -p /tmp/old_release
           gh release download cn-ip-routeros -p "*.md5" -D /tmp/old_release --repo ${{ github.repository }} || true
           
@@ -45,43 +50,63 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           
-      - name: Set release variables
+      - name: Process Releases
         if: steps.compare.outputs.changed == 'true'
-        id: release-vars
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          # 1. 生成时间戳
           DATE_TAG="$(date -u +%Y%m%d-%H%M%S)"
           DATE_FULL="$(date -u '+%Y-%m-%d %H:%M:%S')"
-          echo "date_tag=$DATE_TAG" >> "$GITHUB_OUTPUT"
-          echo "date_full=$DATE_FULL" >> "$GITHUB_OUTPUT"
-          echo "日期标签: $DATE_TAG"
-          echo "完整日期: $DATE_FULL"
-
-      - name: Create dated release
-        if: steps.compare.outputs.changed == 'true'
-        uses: ncipollo/release-action@v1
-        with:
-          tag: cn-ip-routeros-${{ steps.release-vars.outputs.date_tag }}
-          commit: main
-          allowUpdates: false
-          makeLatest: false
-          artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc,cn-ip-routeros/dist/cn-ip-routeros.rsc.md5"
-          artifactContentType: text/plain
-          body: "更新CN IP列表 - ${{ steps.release-vars.outputs.date_full }} UTC"
+          ARCHIVE_TAG="cn-ip-routeros-${DATE_TAG}"
           
-      - name: Update latest release
-        if: steps.compare.outputs.changed == 'true'
-        uses: ncipollo/release-action@v1
-        with:
-          name: CN IP RouterOS Script
-          tag: cn-ip-routeros
-          commit: main
-          allowUpdates: true
-          makeLatest: true
-          artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc,cn-ip-routeros/dist/cn-ip-routeros.rsc.md5"
-          artifactContentType: text/plain
-          body: |
-            更新CN IP列表 - ${{ steps.release-vars.outputs.date_full }} UTC
+          # 2. 检查旧的固定版 Release 是否存在
+          if gh release view cn-ip-routeros --repo ${{ github.repository }} >/dev/null 2>&1; then
+            echo "检测到旧的固定版 Release，正在将其转换为历史归档..."
+            
+            # 需要更新时下载完整文件用于归档
+            gh release download cn-ip-routeros -D /tmp/old_release --repo ${{ github.repository }}
+            
+            # 配置 Git 机器人以操作 Tag
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            
+            # 获取旧 cn-ip-routeros Tag 所指向的 Commit ID
+            OLD_COMMIT=$(git rev-parse refs/tags/cn-ip-routeros 2>/dev/null || echo "")
+            
+            if [ -n "$OLD_COMMIT" ]; then
+              # 创建带日期的新 Tag 指向该旧 Commit
+              git tag $ARCHIVE_TAG $OLD_COMMIT
+              git push origin $ARCHIVE_TAG
+              
+              # 创建归档 release（使用下载的旧文件）
+              gh release create $ARCHIVE_TAG \
+                "/tmp/old_release/cn-ip-routeros.rsc" \
+                "/tmp/old_release/cn-ip-routeros.rsc.md5" \
+                --title "CN IP RouterOS Script (Archived $DATE_TAG)" \
+                --target $OLD_COMMIT \
+                --notes "历史归档版本 - $DATE_FULL UTC" \
+                --repo ${{ github.repository }}
+            fi
+            
+            # 删除旧的固定版 release 和 tag
+            gh release delete cn-ip-routeros --cleanup-tag -y --repo ${{ github.repository }}
+            echo "旧 Release 已删除，归档转换完成"
+          fi
 
-            此标签始终保持最新版本，适合用于自动更新，路径中使用标签名称cn-ip-routeros。
-            因为本仓库还有其他内容，不建议使用latest作为下载路径。
-            如需固定版本，请使用带日期的标签。
+          # 3. 创建全新的 cn-ip-routeros 固定版 Release（绑定在当前最新 commit 上）
+          echo "正在创建全新的最新固定版 Release..."
+          NOTES=$(printf '%s\n\n%s\n%s\n%s' \
+            "更新CN IP列表 - ${DATE_FULL} UTC" \
+            "此标签始终保持最新版本，适合用于自动更新，路径中使用标签名称 cn-ip-routeros。" \
+            "因为本仓库还有其他内容，不建议使用 latest 作为下载路径。" \
+            "如需固定版本，请使用带日期的历史归档标签。")
+
+          gh release create cn-ip-routeros \
+            "cn-ip-routeros/dist/cn-ip-routeros.rsc" \
+            "cn-ip-routeros/dist/cn-ip-routeros.rsc.md5" \
+            --title "CN IP RouterOS Script" \
+            --target main \
+            --latest \
+            --notes "$NOTES" \
+            --repo ${{ github.repository }}
