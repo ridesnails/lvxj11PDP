@@ -71,10 +71,9 @@ jobs:
             OLD_COMMIT=$(git rev-parse refs/tags/cn-ip-routeros 2>/dev/null || echo "")
             
             if [ -n "$OLD_COMMIT" ]; then
-              # 创建归档 release（gh release create 会自动创建 tag，无需单独创建）
+              # 创建归档 release（使用通配符提交目录下所有文件）
               gh release create $ARCHIVE_TAG \
-                "/tmp/old_release/cn-ip-routeros.rsc" \
-                "/tmp/old_release/cn-ip-routeros.rsc.md5" \
+                "/tmp/old_release/*" \
                 --title "CN IP RouterOS Script (Archived $DATE_TAG)" \
                 --target $OLD_COMMIT \
                 --notes "历史归档版本 - $DATE_FULL UTC" \
