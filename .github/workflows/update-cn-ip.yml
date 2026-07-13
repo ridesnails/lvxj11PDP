@@ -74,6 +74,7 @@ jobs:
           tag: cn-ip-routeros-${{ steps.release-vars.outputs.date_tag }}
           commit: main
           allowUpdates: false
+          makeLatest: false
           artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc"
           artifactContentType: text/plain
           body: "更新CN IP列表 - ${{ steps.release-vars.outputs.date_full }} UTC"
@@ -82,10 +83,11 @@ jobs:
         if: steps.compare.outputs.changed == 'true'
         uses: ncipollo/release-action@v1
         with:
-          name: CN IP RouterOS Script Latest
+          name: CN IP RouterOS Script
           tag: cn-ip-routeros
           commit: main
           allowUpdates: false
+          makeLatest: true
           artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc"
           artifactContentType: text/plain
           body: |
