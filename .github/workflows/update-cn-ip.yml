@@ -67,17 +67,15 @@ jobs:
             # 需要更新时下载完整文件用于归档
             gh release download cn-ip-routeros -D /tmp/old_release --repo ${{ github.repository }}
             
-            # 配置 Git 机器人以操作 Tag
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            
             # 获取旧 cn-ip-routeros Tag 所指向的 Commit ID
             OLD_COMMIT=$(git rev-parse refs/tags/cn-ip-routeros 2>/dev/null || echo "")
             
             if [ -n "$OLD_COMMIT" ]; then
-              # 创建带日期的新 Tag 指向该旧 Commit
-              git tag $ARCHIVE_TAG $OLD_COMMIT
-              git push origin $ARCHIVE_TAG
+              # 使用 gh api 创建 tag（避免 git push 触发的 workflows 权限检查）
+              gh api repos/${{ github.repository }}/git/refs \
+                --method POST \
+                -f ref=refs/tags/$ARCHIVE_TAG \
+                -f sha=$OLD_COMMIT
               
               # 创建归档 release（使用下载的旧文件）
               gh release create $ARCHIVE_TAG \
