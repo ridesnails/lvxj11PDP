@@ -21,22 +21,18 @@ jobs:
           chmod +x download-cn-ip.sh
           ./download-cn-ip.sh
           
-          # 获取新文件MD5
-          NEW_MD5=$(md5sum dist/cn-ip-routeros.rsc | cut -d' ' -f1)
+          # 生成MD5文件并获取值（一次计算，双重用途）
+          md5sum dist/cn-ip-routeros.rsc > dist/cn-ip-routeros.rsc.md5
+          NEW_MD5=$(cut -d' ' -f1 dist/cn-ip-routeros.rsc.md5)
           echo "新文件MD5: $NEW_MD5"
           
-          # 下载旧release文件（如存在）用于比较
+          # 下载旧release的MD5文件用于比较（比下载完整rsc文件更快）
           mkdir -p /tmp/old_release
-          gh release download cn-ip-routeros -p "*.rsc" -D /tmp/old_release --repo ${{ github.repository }} || true
+          gh release download cn-ip-routeros -p "*.md5" -D /tmp/old_release --repo ${{ github.repository }} || true
           
           # 获取旧文件MD5
-          if [ -f /tmp/old_release/cn-ip-routeros.rsc ]; then
-            OLD_MD5=$(md5sum /tmp/old_release/cn-ip-routeros.rsc | cut -d' ' -f1)
-            echo "旧文件MD5: $OLD_MD5"
-          else
-            OLD_MD5=""
-            echo "未找到已存在的release"
-          fi
+          OLD_MD5=$(cut -d' ' -f1 /tmp/old_release/cn-ip-routeros.rsc.md5 2>/dev/null || echo "")
+          [ -n "$OLD_MD5" ] && echo "旧文件MD5: $OLD_MD5" || echo "未找到已存在的release"
           
           # 比较并输出结果
           if [ "$NEW_MD5" != "$OLD_MD5" ]; then
@@ -75,7 +71,7 @@ jobs:
           commit: main
           allowUpdates: false
           makeLatest: false
-          artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc"
+          artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc,cn-ip-routeros/dist/cn-ip-routeros.rsc.md5"
           artifactContentType: text/plain
           body: "更新CN IP列表 - ${{ steps.release-vars.outputs.date_full }} UTC"
           
@@ -88,7 +84,7 @@ jobs:
           commit: main
           allowUpdates: false
           makeLatest: true
-          artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc"
+          artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc,cn-ip-routeros/dist/cn-ip-routeros.rsc.md5"
           artifactContentType: text/plain
           body: |
             更新CN IP列表 - ${{ steps.release-vars.outputs.date_full }} UTC
