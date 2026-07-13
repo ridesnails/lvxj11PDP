@@ -45,13 +45,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           
-      - name: Delete existing release
-        if: steps.compare.outputs.changed == 'true'
-        run: |
-          gh release delete cn-ip-routeros -y --repo ${{ github.repository }} || true
-        env:
-          GH_TOKEN: ${{ github.token }}
-          
       - name: Set release variables
         if: steps.compare.outputs.changed == 'true'
         id: release-vars
@@ -75,14 +68,14 @@ jobs:
           artifactContentType: text/plain
           body: "更新CN IP列表 - ${{ steps.release-vars.outputs.date_full }} UTC"
           
-      - name: Create latest release
+      - name: Update latest release
         if: steps.compare.outputs.changed == 'true'
         uses: ncipollo/release-action@v1
         with:
           name: CN IP RouterOS Script
           tag: cn-ip-routeros
           commit: main
-          allowUpdates: false
+          allowUpdates: true
           makeLatest: true
           artifacts: "cn-ip-routeros/dist/cn-ip-routeros.rsc,cn-ip-routeros/dist/cn-ip-routeros.rsc.md5"
           artifactContentType: text/plain
