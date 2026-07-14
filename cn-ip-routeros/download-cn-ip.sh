@@ -4,7 +4,7 @@ set -euo pipefail
 
 CN_LIST_URL="https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.list"
 CN_LIST_FILE="cn.list"
-OUTPUT_ROS_FILE="dist/cn-ip-routeros.rsc"
+OUTPUT_ROS_FILE="cn-ip-routeros.rsc"
 LIST_NAME=${LIST_NAME:-"CN-IP"}
 
 
@@ -94,7 +94,7 @@ show_usage() {
     echo ""
     echo "选项:"
     echo "  -l, --list-name NAME   设置地址列表名称 (默认: CN-IP)"
-    echo "  -o, --output FILE      设置输出文件名 (默认: dist/cn-ip-routeros.rsc)"
+    echo "  -o, --output FILE      设置输出文件名 (默认: cn-ip-routeros.rsc)"
     echo "  -h, --help             显示此帮助信息"
     echo ""
     echo "示例:"

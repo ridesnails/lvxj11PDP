@@ -5,99 +5,123 @@ on:
     - cron: '0 4 * * *'
   workflow_dispatch:
 
+# 防止工作流提交代码后触发自身
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   update-cn-ip:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: write # 必须赋予写入权限以修改 Release 和 Tag
+      contents: write # 必须赋予写入权限以提交代码
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          ref: main
         
       - name: Run script and compare
         id: compare
         working-directory: cn-ip-routeros
         run: |
-          # 运行脚本生成新文件
+          # 运行脚本生成新文件（脚本生成在当前目录）
           chmod +x download-cn-ip.sh
           ./download-cn-ip.sh
           
-          # 生成MD5文件并获取值
-          md5sum dist/cn-ip-routeros.rsc > dist/cn-ip-routeros.rsc.md5
-          NEW_MD5=$(cut -d' ' -f1 dist/cn-ip-routeros.rsc.md5)
+          # 为新文件生成MD5
+          md5sum cn-ip-routeros.rsc > cn-ip-routeros.rsc.md5
+          NEW_MD5=$(cut -d' ' -f1 cn-ip-routeros.rsc.md5)
           echo "新文件MD5: $NEW_MD5"
           
-          # 先下载旧release的MD5文件（仅约50字节，快速比较）
-          mkdir -p /tmp/old_release
-          gh release download cn-ip-routeros -p "*.md5" -D /tmp/old_release --repo ${{ github.repository }} || true
-          
-          # 获取旧文件MD5
-          OLD_MD5=$(cut -d' ' -f1 /tmp/old_release/cn-ip-routeros.rsc.md5 2>/dev/null || echo "")
-          [ -n "$OLD_MD5" ] && echo "旧文件MD5: $OLD_MD5" || echo "未找到已存在的release"
+          # 获取旧文件MD5（从dist目录读取）
+          OLD_MD5=$(cut -d' ' -f1 dist/cn-ip-routeros.rsc.md5 2>/dev/null || echo "")
+          [ -n "$OLD_MD5" ] && echo "旧文件MD5: $OLD_MD5" || echo "未找到已存在的文件"
           
           # 比较并输出结果
           if [ "$NEW_MD5" != "$OLD_MD5" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "IP列表已更新，正在更新release。"
+            echo "IP列表已更新，正在处理文件。"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "IP列表未变化，跳过release更新。"
+            echo "IP列表未变化，跳过提交。"
           fi
-        env:
-          GH_TOKEN: ${{ github.token }}
           
-      - name: Process Releases
+      - name: Rename old files and move new files to dist
         if: steps.compare.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
+        working-directory: cn-ip-routeros
         run: |
-          # 1. 生成时间戳
-          DATE_TAG="$(date -u +%Y%m%d-%H%M%S)"
-          DATE_FULL="$(date -u '+%Y-%m-%d %H:%M:%S')"
-          ARCHIVE_TAG="cn-ip-routeros-${DATE_TAG}"
+          # 输出时间戳供后续步骤使用
+          DATE_STAMP="$(date -u +%Y%m%d-%H%M%S)"
           
-          # 2. 检查旧的固定版 Release 是否存在
-          if gh release view cn-ip-routeros --repo ${{ github.repository }} >/dev/null 2>&1; then
-            echo "检测到旧的固定版 Release，正在将其转换为历史归档..."
-            
-            # 需要更新时下载完整文件用于归档
-            gh release download cn-ip-routeros -D /tmp/old_release --repo ${{ github.repository }}
-            
-            # 获取旧 cn-ip-routeros Tag 所指向的 Commit ID
-            OLD_COMMIT=$(git rev-parse refs/tags/cn-ip-routeros 2>/dev/null || echo "")
-            
-            if [ -n "$OLD_COMMIT" ]; then
-              # 创建归档 release（使用通配符提交目录下所有文件）
-              gh release create $ARCHIVE_TAG \
-                "/tmp/old_release/*" \
-                --title "CN IP RouterOS Script (Archived $DATE_TAG)" \
-                --target $OLD_COMMIT \
-                --notes "历史归档版本 - $DATE_FULL UTC" \
-                --repo ${{ github.repository }}
-            fi
-            
-            # 删除旧的固定版 release 和 tag
-            gh release delete cn-ip-routeros --cleanup-tag -y --repo ${{ github.repository }}
-            echo "旧 Release 已删除，归档转换完成"
+          # 确保dist目录存在
+          mkdir -p dist
+          
+          # 如果dist目录已有旧文件，将其重命名为历史版本
+          if [ -f dist/cn-ip-routeros.rsc ]; then
+            mv dist/cn-ip-routeros.rsc dist/cn-ip-routeros-${DATE_STAMP}.rsc
+            mv dist/cn-ip-routeros.rsc.md5 dist/cn-ip-routeros-${DATE_STAMP}.rsc.md5
+            echo "已将旧文件重命名为历史版本: cn-ip-routeros-${DATE_STAMP}.rsc"
+          else
+            echo "dist目录中无旧文件，无需重命名"
           fi
-
-          # 3. 创建全新的 cn-ip-routeros 固定版 Release（绑定在当前最新 commit 上）
-          echo "正在创建全新的最新固定版 Release..."
-          NOTES=$(printf '%s\n\n%s\n%s\n%s' \
-            "更新CN IP列表 - ${DATE_FULL} UTC" \
-            "此标签始终保持最新版本，适合用于自动更新，路径中使用标签名称 cn-ip-routeros。" \
-            "因为本仓库还有其他内容，不建议使用 latest 作为下载路径。" \
-            "如需固定版本，请使用带日期的历史归档标签。")
-
-          gh release create cn-ip-routeros \
-            "cn-ip-routeros/dist/cn-ip-routeros.rsc" \
-            "cn-ip-routeros/dist/cn-ip-routeros.rsc.md5" \
-            --title "CN IP RouterOS Script" \
-            --target main \
-            --latest \
-            --notes "$NOTES" \
-            --repo ${{ github.repository }}
+          
+          # 将新生成的文件移动到dist目录
+          mv cn-ip-routeros.rsc dist/
+          mv cn-ip-routeros.rsc.md5 dist/
+          echo "已将新文件移动到dist目录"
+          
+      - name: Prune old versions (keep 8)
+        if: steps.compare.outputs.changed == 'true'
+        working-directory: cn-ip-routeros
+        run: |
+          # 获取所有带日期的rsc文件，按名称排序（名称中包含日期，排序即按日期排序）
+          # 保留最新的8个历史版本 + 1个最新版（无日期）
+          # 需要删除的是 .rsc 和 .rsc.md5 配对的文件
+          
+          # 列出所有历史文件（带日期戳的）
+          HIST_FILES=$(ls -1 dist/cn-ip-routeros-*.rsc 2>/dev/null | sort)
+          
+          if [ -n "$HIST_FILES" ]; then
+            # 计算文件数量
+            COUNT=$(echo "$HIST_FILES" | wc -l)
+            echo "当前历史文件数量: $COUNT"
+            
+            # 如果超过8个，删除多余的
+            if [ $COUNT -gt 8 ]; then
+              TO_DELETE=$(echo "$HIST_FILES" | head -n $((COUNT - 8)))
+              echo "需要删除的旧文件:"
+              echo "$TO_DELETE"
+              
+              # 删除旧的 .rsc 和对应的 .md5 文件
+              for FILE in $TO_DELETE; do
+                rm -f "$FILE"
+                rm -f "${FILE}.md5"
+                echo "已删除: $FILE 和 ${FILE}.md5"
+              done
+            else
+              echo "历史文件数量未超过8个，无需删除"
+            fi
+          else
+            echo "暂无历史文件"
+          fi
+          
+      - name: Commit and push changes
+        if: steps.compare.outputs.changed == 'true'
+        run: |
+          # 配置 git 用户
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 添加文件
+          git add cn-ip-routeros/dist/
+          
+          # 提交（使用 [skip ci] 防止触发工作流）
+          DATE_STAMP="${{ steps.compare.outputs.date_stamp }}"
+          git commit -m "chore: update CN IP list ${DATE_STAMP} [skip ci]"
+          
+          # 推送到 main 分支
+          git push origin main
