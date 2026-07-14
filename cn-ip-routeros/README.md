@@ -16,6 +16,15 @@
 
 ## 使用方法
 
+### 方法一：直接下载仓库中已生成的脚本
+
+```bash
+# 直接下载最新版本
+curl -o cn-ip-routeros.rsc https://raw.githubusercontent.com/lvxj11/lvxj11Mixed/main/cn-ip-routeros/dist/cn-ip-routeros.rsc
+```
+
+### 方法二：本地运行脚本生成
+
 ```bash
 # 基本用法
 ./download-cn-ip.sh
