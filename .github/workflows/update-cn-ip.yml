@@ -116,8 +116,8 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 添加文件
-          git add cn-ip-routeros/dist/
+          # 添加文件（-f 强制添加被 .gitignore 忽略的文件）
+          git add -f cn-ip-routeros/dist/
           
           # 提交（使用 [skip ci] 防止触发工作流）
           DATE_STAMP="${{ steps.compare.outputs.date_stamp }}"
