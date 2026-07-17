@@ -1,4 +1,4 @@
-name: Update CN IP List
+name: 更新 CN IP 列表
 
 on:
   schedule:
@@ -18,14 +18,13 @@ jobs:
       contents: write # 必须赋予写入权限以提交代码
     
     steps:
-      - name: Checkout repository
+      - name: 检出仓库
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: main
         
-      - name: Run script and compare
-        id: compare
+      - name: 运行脚本并比较
         working-directory: cn-ip-routeros
         run: |
           # 运行脚本生成新文件（脚本生成在当前目录）
@@ -50,7 +49,7 @@ jobs:
             echo "IP列表未变化，跳过提交。"
           fi
           
-      - name: Rename old files and move new files to dist
+      - name: 移动新文件到dist并创建历史版本
         if: steps.compare.outputs.changed == 'true'
         working-directory: cn-ip-routeros
         run: |
@@ -60,21 +59,17 @@ jobs:
           # 确保dist目录存在
           mkdir -p dist
           
-          # 如果dist目录已有旧文件，将其重命名为历史版本
-          if [ -f dist/cn-ip-routeros.rsc ]; then
-            mv dist/cn-ip-routeros.rsc dist/cn-ip-routeros-${DATE_STAMP}.rsc
-            mv dist/cn-ip-routeros.rsc.md5 dist/cn-ip-routeros-${DATE_STAMP}.rsc.md5
-            echo "已将旧文件重命名为历史版本: cn-ip-routeros-${DATE_STAMP}.rsc"
-          else
-            echo "dist目录中无旧文件，无需重命名"
-          fi
-          
-          # 将新生成的文件移动到dist目录
+          # 先将新文件移动到dist目录（覆盖旧的最新版）
           mv cn-ip-routeros.rsc dist/
           mv cn-ip-routeros.rsc.md5 dist/
-          echo "已将新文件移动到dist目录"
+          echo "已将新文件移动到dist目录: cn-ip-routeros.rsc"
           
-      - name: Prune old versions (keep 8)
+          # 再复制一份带日期的版本（历史归档）
+          cp dist/cn-ip-routeros.rsc dist/cn-ip-routeros-${DATE_STAMP}.rsc
+          cp dist/cn-ip-routeros.rsc.md5 dist/cn-ip-routeros-${DATE_STAMP}.rsc.md5
+          echo "已创建历史版本: cn-ip-routeros-${DATE_STAMP}.rsc"
+          
+      - name: 清理旧版本（保留8个）
         if: steps.compare.outputs.changed == 'true'
         working-directory: cn-ip-routeros
         run: |
@@ -109,7 +104,7 @@ jobs:
             echo "暂无历史文件"
           fi
           
-      - name: Commit and push changes
+      - name: 提交并推送更改
         if: steps.compare.outputs.changed == 'true'
         run: |
           # 配置 git 用户
