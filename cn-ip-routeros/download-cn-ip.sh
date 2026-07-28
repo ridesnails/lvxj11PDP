@@ -7,9 +7,9 @@ CN_LIST_FILE="cn.list"
 OUTPUT_ROS_FILE="cn-ip-routeros.rsc"
 LIST_NAME=${LIST_NAME:-"CN-IP"}
 
-# 代理IP列表配置
-TELEGRAM_LIST_URL="https://core.telegram.org/resources/cidr.txt"
-TELEGRAM_LIST_FILE="telegram-cidr.txt"
+# 代理IP列表配置（统一使用MetaCubeX数据源）
+TELEGRAM_LIST_URL="https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.list"
+TELEGRAM_LIST_FILE="telegram.list"
 PROXY_LIST_NAME=${PROXY_LIST_NAME:-"PROXY-IP"}
 # fake-ip-range (Clash/Mihomo 的 fake-ip 地址段)
 FAKE_IP_RANGE="198.18.128.1/17"
@@ -65,74 +65,77 @@ download_telegram_list() {
     download_file "$TELEGRAM_LIST_URL" "$TELEGRAM_LIST_FILE" "Telegram IP列表"
 }
 
+# 生成单个address-list配置
+# 参数: list_name(列表名称), input_file, include_fake_ip(可选), comment(可选)
+generate_address_list() {
+    local list_name="$1"
+    local input_file="$2"
+    local include_fake_ip="${3:-false}"
+    local comment="${4:-}"
+    
+    echo "# ========== ${comment:-$list_name} 地址列表 =========="
+    echo "# 清除已有的列表条目"
+    echo "/ip firewall address-list remove [find list=\"$list_name\"]"
+    echo "/ipv6 firewall address-list remove [find list=\"$list_name\"]"
+    
+    if [ "$include_fake_ip" = "true" ]; then
+        echo ""
+        echo "# 添加fake-ip-range (Clash/Mihomo fake-ip地址段)"
+        echo "/ip firewall address-list add address=\"$FAKE_IP_RANGE\" list=\"$list_name\"
+        echo "/ipv6 firewall address-list add address=\"$FAKE_IP_RANGE6\" list=\"$list_name\"
+    fi
+    
+    echo ""
+    echo "# 添加IPv4地址"
+    grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' "$input_file" | while read -r cidr; do
+        echo "/ip firewall address-list add address=\"$cidr\" list=\"$list_name\"
+    done
+    
+    echo ""
+    echo "# 添加IPv6地址"
+    grep -E '^[0-9a-fA-F]+:' "$input_file" | while read -r cidr; do
+        echo "/ipv6 firewall address-list add address=\"$cidr\" list=\"$list_name\"
+    done
+}
+
+# 统计address-list条目数
+# 参数: input_file, list_name
+count_address_list() {
+    local input_file="$1"
+    local list_name="$2"
+    
+    local ipv4_count=$(grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' "$input_file" | wc -l)
+    local ipv6_count=$(grep -E '^[0-9a-fA-F]+:' "$input_file" | wc -l)
+    
+    log_info "  [$list_name]"
+    log_info "    - IPv4地址数量: $ipv4_count"
+    log_info "    - IPv6地址数量: $ipv6_count"
+}
+
 generate_routeros_script() {
     log_info "正在生成RouterOS脚本..."
     
     mkdir -p dist
     
     {
-        echo ":local listName \"$LIST_NAME\""
-        echo ":local proxyListName \"$PROXY_LIST_NAME\""
-        echo ""
-        echo "# ========== CN-IP 地址列表 =========="
-        echo "# 清除已有的CN-IP列表条目"
-        echo "/ip firewall address-list remove [find list=\$listName]"
-        echo "/ipv6 firewall address-list remove [find list=\$listName]"
-        echo ""
-        echo "# 添加CN-IP IPv4地址"
-        
-        grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' "$CN_LIST_FILE" | while read -r cidr; do
-            echo "/ip firewall address-list add address=\"$cidr\" list=\$listName"
-        done
+        # 生成CN-IP列表
+        generate_address_list "$LIST_NAME" "$CN_LIST_FILE" "false" "CN-IP"
         
         echo ""
-        echo "# 添加CN-IP IPv6地址"
         
-        grep -E '^[0-9a-fA-F]+:' "$CN_LIST_FILE" | while read -r cidr; do
-            echo "/ipv6 firewall address-list add address=\"$cidr\" list=\$listName"
-        done
-        
-        echo ""
-        echo "# ========== PROXY-IP 地址列表 =========="
-        echo "# 清除已有的PROXY-IP列表条目"
-        echo "/ip firewall address-list remove [find list=\$proxyListName]"
-        echo "/ipv6 firewall address-list remove [find list=\$proxyListName]"
-        echo ""
-        echo "# 添加fake-ip-range (Clash/Mihomo fake-ip地址段)"
-        echo "/ip firewall address-list add address=\"$FAKE_IP_RANGE\" list=\$proxyListName"
-        echo "/ipv6 firewall address-list add address=\"$FAKE_IP_RANGE6\" list=\$proxyListName"
-        echo ""
-        echo "# 添加Telegram IPv4地址"
-        
-        grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' "$TELEGRAM_LIST_FILE" | while read -r cidr; do
-            echo "/ip firewall address-list add address=\"$cidr\" list=\$proxyListName"
-        done
-        
-        echo ""
-        echo "# 添加Telegram IPv6地址"
-        
-        grep -E '^[0-9a-fA-F]+:' "$TELEGRAM_LIST_FILE" | while read -r cidr; do
-            echo "/ipv6 firewall address-list add address=\"$cidr\" list=\$proxyListName"
-        done
+        # 生成PROXY-IP列表（包含fake-ip）
+        generate_address_list "$PROXY_LIST_NAME" "$TELEGRAM_LIST_FILE" "true" "PROXY-IP"
         
         echo ""
         echo ":put \"CN-IP and PROXY-IP lists updated successfully.\""
     } > "$OUTPUT_ROS_FILE"
     
-    local cn_ipv4_count=$(grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' "$CN_LIST_FILE" | wc -l)
-    local cn_ipv6_count=$(grep -E '^[0-9a-fA-F]+:' "$CN_LIST_FILE" | wc -l)
-    local tg_ipv4_count=$(grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' "$TELEGRAM_LIST_FILE" | wc -l)
-    local tg_ipv6_count=$(grep -E '^[0-9a-fA-F]+:' "$TELEGRAM_LIST_FILE" | wc -l)
-    
     log_info "RouterOS脚本已生成: $OUTPUT_ROS_FILE"
-    log_info "  [CN-IP]"
-    log_info "    - IPv4地址数量: $cn_ipv4_count"
-    log_info "    - IPv6地址数量: $cn_ipv6_count"
+    count_address_list "$CN_LIST_FILE" "CN-IP"
     log_info "  [PROXY-IP]"
     log_info "    - fake-ip-range: 1 (IPv4)"
     log_info "    - fake-ip-range6: 1 (IPv6)"
-    log_info "    - Telegram IPv4地址数量: $tg_ipv4_count"
-    log_info "    - Telegram IPv6地址数量: $tg_ipv6_count"
+    count_address_list "$TELEGRAM_LIST_FILE" "Telegram"
 }
 
 cleanup() {
