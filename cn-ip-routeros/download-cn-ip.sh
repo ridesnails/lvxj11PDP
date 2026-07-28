@@ -81,20 +81,20 @@ generate_address_list() {
     if [ "$include_fake_ip" = "true" ]; then
         echo ""
         echo "# 添加fake-ip-range (Clash/Mihomo fake-ip地址段)"
-        echo "/ip firewall address-list add address=\"$FAKE_IP_RANGE\" list=\"$list_name\"
-        echo "/ipv6 firewall address-list add address=\"$FAKE_IP_RANGE6\" list=\"$list_name\"
+        echo "/ip firewall address-list add address=\"$FAKE_IP_RANGE\" list=\"$list_name\""
+        echo "/ipv6 firewall address-list add address=\"$FAKE_IP_RANGE6\" list=\"$list_name\""
     fi
     
     echo ""
     echo "# 添加IPv4地址"
     grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' "$input_file" | while read -r cidr; do
-        echo "/ip firewall address-list add address=\"$cidr\" list=\"$list_name\"
+        echo "/ip firewall address-list add address=\"$cidr\" list=\"$list_name\""
     done
     
     echo ""
     echo "# 添加IPv6地址"
     grep -E '^[0-9a-fA-F]+:' "$input_file" | while read -r cidr; do
-        echo "/ipv6 firewall address-list add address=\"$cidr\" list=\"$list_name\"
+        echo "/ipv6 firewall address-list add address=\"$cidr\" list=\"$list_name\""
     done
 }
 
