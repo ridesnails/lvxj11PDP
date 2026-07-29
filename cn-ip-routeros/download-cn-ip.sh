@@ -57,13 +57,7 @@ download_file() {
     log_info "下载完成，文件共 $(wc -l < "$output_file") 行"
 }
 
-download_cn_list() {
-    download_file "$CN_LIST_URL" "$CN_LIST_FILE" "中国IP列表"
-}
 
-download_telegram_list() {
-    download_file "$TELEGRAM_LIST_URL" "$TELEGRAM_LIST_FILE" "Telegram IP列表"
-}
 
 # 生成单个address-list配置
 # 参数: list_name(列表名称), input_file, include_fake_ip(可选), comment(可选)
@@ -189,8 +183,8 @@ main() {
         esac
     done
     
-    download_cn_list
-    download_telegram_list
+    download_file "$CN_LIST_URL" "$CN_LIST_FILE" "中国IP列表"
+    download_file "$TELEGRAM_LIST_URL" "$TELEGRAM_LIST_FILE" "Telegram IP列表"
     generate_routeros_script
     cleanup
     
