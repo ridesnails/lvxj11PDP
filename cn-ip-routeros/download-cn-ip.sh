@@ -207,7 +207,11 @@ main() {
     for list_config in "${PROXY_LISTS[@]}"; do
         IFS='|' read -r url file desc <<< "$list_config"
         download_file "$url" "$file" "$desc"
+        # 确保文件末尾有换行符，避免与下一个文件的首行拼接
+        sed -i -e '$a\' "$file"
         cat "$file" >> "$PROXY_MERGED_FILE"
+        # 添加空行作为分隔符
+        echo "" >> "$PROXY_MERGED_FILE"
     done
     
     generate_routeros_script
