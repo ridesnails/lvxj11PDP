@@ -8,12 +8,18 @@ OUTPUT_ROS_FILE="cn-ip-routeros.rsc"
 LIST_NAME=${LIST_NAME:-"CN-IP"}
 
 # 代理IP列表配置（统一使用MetaCubeX数据源）
-TELEGRAM_LIST_URL="https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.list"
-TELEGRAM_LIST_FILE="telegram.list"
 PROXY_LIST_NAME=${PROXY_LIST_NAME:-"PROXY-IP"}
 # fake-ip-range (Clash/Mihomo 的 fake-ip 地址段)
 FAKE_IP_RANGE="198.18.128.1/17"
 FAKE_IP_RANGE6="fdfe:dcba:9876::1/64"
+
+# 代理IP列表数组: URL|文件名|描述
+PROXY_LISTS=(
+    "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.list|telegram.list|Telegram IP列表"
+    "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/asn/AS15169.list|AS15169.list|Google AS15169 IP列表"
+)
+# 代理IP合并文件
+PROXY_MERGED_FILE="proxy-ip.list"
 
 
 RED='\033[0;31m'
@@ -117,8 +123,8 @@ generate_routeros_script() {
         
         echo ""
         
-        # 生成PROXY-IP列表（包含fake-ip）
-        generate_address_list "$PROXY_LIST_NAME" "$TELEGRAM_LIST_FILE" "true" "PROXY-IP"
+        # 生成PROXY-IP列表（包含fake-ip和所有代理IP）
+        generate_address_list "$PROXY_LIST_NAME" "$PROXY_MERGED_FILE" "true" "PROXY-IP"
         
         echo ""
         echo ":put \"CN-IP and PROXY-IP lists updated successfully.\""
@@ -129,7 +135,10 @@ generate_routeros_script() {
     log_info "  [PROXY-IP]"
     log_info "    - fake-ip-range: 1 (IPv4)"
     log_info "    - fake-ip-range6: 1 (IPv6)"
-    count_address_list "$TELEGRAM_LIST_FILE" "Telegram"
+    for list_config in "${PROXY_LISTS[@]}"; do
+        IFS='|' read -r _ file desc <<< "$list_config"
+        count_address_list "$file" "$desc"
+    done
 }
 
 cleanup() {
@@ -137,9 +146,16 @@ cleanup() {
         rm "$CN_LIST_FILE"
         log_info "已清理临时文件: $CN_LIST_FILE"
     fi
-    if [ -f "$TELEGRAM_LIST_FILE" ]; then
-        rm "$TELEGRAM_LIST_FILE"
-        log_info "已清理临时文件: $TELEGRAM_LIST_FILE"
+    for list_config in "${PROXY_LISTS[@]}"; do
+        IFS='|' read -r _ file _ <<< "$list_config"
+        if [ -f "$file" ]; then
+            rm "$file"
+            log_info "已清理临时文件: $file"
+        fi
+    done
+    if [ -f "$PROXY_MERGED_FILE" ]; then
+        rm "$PROXY_MERGED_FILE"
+        log_info "已清理临时文件: $PROXY_MERGED_FILE"
     fi
 }
 
@@ -183,8 +199,17 @@ main() {
         esac
     done
     
+    # 下载中国IP列表
     download_file "$CN_LIST_URL" "$CN_LIST_FILE" "中国IP列表"
-    download_file "$TELEGRAM_LIST_URL" "$TELEGRAM_LIST_FILE" "Telegram IP列表"
+    
+    # 下载并合并所有代理IP列表
+    > "$PROXY_MERGED_FILE"
+    for list_config in "${PROXY_LISTS[@]}"; do
+        IFS='|' read -r url file desc <<< "$list_config"
+        download_file "$url" "$file" "$desc"
+        cat "$file" >> "$PROXY_MERGED_FILE"
+    done
+    
     generate_routeros_script
     cleanup
     
